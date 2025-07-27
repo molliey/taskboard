@@ -39,7 +39,7 @@ A modern task management platform with comprehensive project management and real
 - **PostgreSQL 13+**
 - **Docker & Docker Compose** (optional, for easy setup)
 
-### 🟢 One-command local run (frontend + backend locally, only Postgres in Docker)
+### 🟢 One-command local run (frontend + backend + Docker)
 
 ```bash
 bash scripts/start.sh
