@@ -159,9 +159,7 @@ python -m pytest tests/unit
 - **Failed**: 0 ❌
 - **Test Coverage**: 100%
 
-
-
-
+![Taskboard UI](https://github.com/user-attachments/assets/c0af268d-fa19-4ec9-bed6-9f6dbcbaad7f)
 
 
 ## 👥 Team
