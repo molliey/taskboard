@@ -43,9 +43,9 @@ A modern task management platform with comprehensive project management and real
 ```bash
 bash scripts/start.sh
 # ... later
-bash scripts/stop.sh
+bash scripts/stop.sh```
 
-#### Access Application
+### Access Application
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
