@@ -144,14 +144,14 @@ Authorization: Bearer <your-jwt-token>
 ```bash
 cd backend
 
-# Run all tests
-python -m pytest
+# Run all tests with complete report
+python -m pytest -v -s
 
-# Run specific test file
-python -m pytest tests/test_api.py
+# Run e2e tests
+python -m pytest tests/e2e
 
-# Run service layer unit tests
-python -m pytest tests/test_services.py
+# Run unit tests
+python -m pytest tests/unit
 
 ```
 
