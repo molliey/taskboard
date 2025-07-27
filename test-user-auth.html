@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>用户认证测试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f0f0f0;
+        }
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 600px;
+        }
+        .user-info {
+            padding: 15px;
+            background-color: #e8f5e8;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .user-avatar {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .auth-button {
+            padding: 8px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #36b37e;
+            color: white;
+        }
+        .auth-button:hover {
+            background-color: #2d5a2d;
+        }
+        .auth-button.logout {
+            background-color: #d04437;
+        }
+        .auth-button.logout:hover {
+            background-color: #b02e23;
+        }
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .user-card {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .user-card:hover {
+            background-color: #f9f9f9;
+        }
+        .user-card.active {
+            background-color: #e8f5e8;
+            border-color: #36b37e;
+        }
+        .user-name {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .user-email {
+            color: #666;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background-color: #e8f5e8;
+            color: #2d5a2d;
+            border: 1px solid #36b37e;
+        }
+        .status.error {
+            background-color: #ffebe6;
+            color: #d04437;
+            border: 1px solid #d04437;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>用户认证系统测试</h1>
+        
+        <div id="currentUserInfo" class="user-info">
+            <div id="userDisplay">未登录</div>
+        </div>
+        
+        <div id="statusMessage" class="status" style="display: none;"></div>
+        
+        <h3>可用用户账户:</h3>
+        <div class="user-list" id="userList"></div>
+        
+        <div style="margin-top: 20px;">
+            <button class="auth-button logout" onclick="handleLogout()">登出当前用户</button>
+            <button class="auth-button" onclick="testProfileUpdate()">测试更新Profile</button>
+            <button class="auth-button" onclick="testAccountSettings()">测试Account Settings</button>
+        </div>
+    </div>
+
+    <script>
+        // 模拟认证服务
+        class MockAuthService {
+            constructor() {
+                this.currentUser = null;
+                this.isAuthenticated = false;
+                this.availableUsers = [
+                    {
+                        id: 1,
+                        name: "Alice Johnson",
+                        email: "alice.johnson@company.com",
+                        avatar: "👩‍💼",
+                        role: "Frontend Developer",
+                        isActive: true
+                    },
+                    {
+                        id: 2,
+                        name: "Bob Smith", 
+                        email: "bob.smith@company.com",
+                        avatar: "👨‍💻",
+                        role: "Backend Developer",
+                        isActive: false
+                    },
+                    {
+                        id: 3,
+                        name: "Charlie Wilson",
+                        email: "charlie.wilson@company.com",
+                        avatar: "👨‍🎨", 
+                        role: "UI/UX Designer",
+                        isActive: false
+                    },
+                    {
+                        id: 4,
+                        name: "Diana Chen",
+                        email: "diana.chen@company.com",
+                        avatar: "👩‍🔬",
+                        role: "Product Manager",
+                        isActive: false
+                    },
+                    {
+                        id: 5,
+                        name: "Erik Anderson",
+                        email: "erik.anderson@company.com",
+                        avatar: "👨‍⚡",
+                        role: "DevOps Engineer", 
+                        isActive: false
+                    }
+                ];
+                
+                // 默认登录第一个用户
+                this.login(this.availableUsers[0]);
+            }
+
+            login(user) {
+                this.currentUser = { ...user };
+                this.isAuthenticated = true;
+                
+                // 更新用户活跃状态
+                this.availableUsers.forEach(u => {
+                    u.isActive = u.id === user.id;
+                });
+                
+                console.log(`User ${user.name} logged in successfully`);
+                this.updateUI();
+                this.showStatus(`已登录为 ${user.name}`, 'success');
+            }
+
+            logout() {
+                const prevUser = this.currentUser;
+                this.currentUser = null;
+                this.isAuthenticated = false;
+                
+                // 清除活跃状态
+                this.availableUsers.forEach(u => {
+                    u.isActive = false;
+                });
+                
+                console.log(`User ${prevUser?.name} logged out`);
+                this.updateUI();
+                this.showStatus(`${prevUser?.name} 已登出`, 'error');
+            }
+
+            switchAccount(userId) {
+                const newUser = this.availableUsers.find(u => u.id === userId);
+                if (newUser) {
+                    this.login(newUser);
+                    return true;
+                }
+                return false;
+            }
+
+            getCurrentUser() {
+                return this.currentUser;
+            }
+
+            isLoggedIn() {
+                return this.isAuthenticated && this.currentUser !== null;
+            }
+
+            getAvailableUsers() {
+                return this.availableUsers.filter(u => !u.isActive);
+            }
+
+            updateUI() {
+                const userDisplayEl = document.getElementById('userDisplay');
+                const userListEl = document.getElementById('userList');
+                
+                // 更新当前用户显示
+                if (this.isLoggedIn()) {
+                    userDisplayEl.innerHTML = `
+                        <span class="user-avatar">${this.currentUser.avatar}</span>
+                        <strong>${this.currentUser.name}</strong><br>
+                        <small>${this.currentUser.email}</small><br>
+                        <small style="color: #666;">${this.currentUser.role}</small>
+                    `;
+                } else {
+                    userDisplayEl.innerHTML = '未登录';
+                }
+                
+                // 更新用户列表
+                userListEl.innerHTML = '';
+                this.availableUsers.forEach(user => {
+                    const userCard = document.createElement('div');
+                    userCard.className = `user-card ${user.isActive ? 'active' : ''}`;
+                    userCard.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <span class="user-avatar" style="margin-right: 8px;">${user.avatar}</span>
+                            <div>
+                                <div class="user-name">${user.name}</div>
+                                <div class="user-email">${user.email}</div>
+                                <div style="font-size: 11px; color: #999;">${user.role}</div>
+                            </div>
+                        </div>
+                        ${user.isActive ? '<div style="color: #36b37e; font-size: 12px; margin-top: 5px;">当前用户</div>' : ''}
+                    `;
+                    
+                    if (!user.isActive) {
+                        userCard.onclick = () => this.switchAccount(user.id);
+                    }
+                    
+                    userListEl.appendChild(userCard);
+                });
+            }
+
+            showStatus(message, type) {
+                const statusEl = document.getElementById('statusMessage');
+                statusEl.textContent = message;
+                statusEl.className = `status ${type}`;
+                statusEl.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 初始化认证服务
+        const authService = new MockAuthService();
+
+        function handleLogout() {
+            authService.logout();
+        }
+
+        function testProfileUpdate() {
+            if (authService.isLoggedIn()) {
+                authService.showStatus('Profile 更新功能 - 模拟成功', 'success');
+                console.log('Profile update triggered');
+            } else {
+                authService.showStatus('请先登录', 'error');
+            }
+        }
+
+        function testAccountSettings() {
+            if (authService.isLoggedIn()) {
+                authService.showStatus('Account Settings 打开 - 模拟成功', 'success');
+                console.log('Account settings triggered');
+            } else {
+                authService.showStatus('请先登录', 'error');
+            }
+        }
+
+        // 页面加载时初始化UI
+        window.onload = function() {
+            authService.updateUI();
+        };
+    </script>
+</body>
+</html>

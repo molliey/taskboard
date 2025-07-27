@@ -1,25 +1,47 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import user, project, task  # 导入你写的模块
+from app.api import user, project, column, task
+from app.api.websocket import websocket_endpoint
+from app.database.base import Base
+from app.database.session import engine
 
-app = FastAPI()
+# Create tables
+Base.metadata.create_all(bind=engine)
 
-# 跨域中间件设置
+app = FastAPI(
+    title="Task Board API",
+    description="Collaborative task management system with real-time updates",
+    version="1.0.0"
+)
+
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],  # Your frontend URLs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 注册路由模块
-app.include_router(user.router, prefix="/api", tags=["User"])
-app.include_router(project.router, prefix="/api", tags=["Project"])
-app.include_router(task.router, prefix="/api", tags=["Task"])
+# Include routers
+app.include_router(user.router)
+app.include_router(project.router)
+app.include_router(column.router)
+app.include_router(task.router)
 
-# 健康检查接口
+# WebSocket endpoint
+@app.websocket("/ws")
+async def websocket_route(websocket: WebSocket, user_id: str = "anonymous"):
+    await websocket_endpoint(websocket, user_id)
+
+@app.get("/")
+def read_root():
+    return {
+        "message": "Task Board API",
+        "version": "1.0.0",
+        "docs": "/docs"
+    }
+
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
-
+    return {"status": "healthy"}

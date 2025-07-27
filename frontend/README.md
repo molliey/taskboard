@@ -1,12 +1,32 @@
-# React + Vite
+```markdown
+# Task Board Backend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A FastAPI-based backend for a collaborative task management application with real-time updates.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Project Management**: Create and manage multiple projects with team collaboration
+- **Task Tracking**: Full CRUD operations with drag-and-drop support
+- **Team Collaboration**: Role-based access control (Owner, Admin, Member)
+- **Real-time Updates**: WebSocket support for live synchronization
+- **Authentication**: JWT-based secure authentication
+- **RESTful API**: Clean, well-documented API endpoints
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **FastAPI**: Modern Python web framework
+- **SQLAlchemy**: ORM for database operations
+- **PostgreSQL**: Primary database
+- **Alembic**: Database migrations
+- **WebSockets**: Real-time communication
+- **JWT**: Secure authentication
+- **Pytest**: Testing framework
+
+## Installation
+
+1. Clone the repository
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```

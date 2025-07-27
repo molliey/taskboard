@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f0f0f0;
+        }
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+        }
+        .connected { 
+            background-color: #e8f5e8; 
+            border: 1px solid #36b37e; 
+            color: #006644; 
+        }
+        .disconnected { 
+            background-color: #fffae6; 
+            border: 1px solid #ffab00; 
+            color: #974f00; 
+        }
+        .error { 
+            background-color: #ffebe6; 
+            border: 1px solid #d04437; 
+            color: #d04437; 
+        }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .primary { 
+            background-color: #36b37e; 
+            color: white; 
+        }
+        .secondary { 
+            background-color: #f4f5f7; 
+            color: #5e6c84; 
+        }
+        #messages { 
+            height: 200px; 
+            overflow-y: auto; 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            background-color: #f9f9f9; 
+            font-family: monospace; 
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSocket Connection Test</h1>
+        
+        <div id="status" class="status disconnected">
+            Status: Not connected
+        </div>
+        
+        <button id="connect" class="primary" onclick="connectWebSocket()">Connect</button>
+        <button id="disconnect" class="secondary" onclick="disconnectWebSocket()">Disconnect</button>
+        <button id="sendTest" class="primary" onclick="sendTestMessage()">Send Test Message</button>
+        
+        <h3>Messages:</h3>
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        
+        function updateStatus(message, className) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = 'Status: ' + message;
+            statusDiv.className = 'status ' + className;
+        }
+        
+        function addMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const timestamp = new Date().toLocaleTimeString();
+            messagesDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function connectWebSocket() {
+            const urls = [
+                'ws://localhost:8000/ws?user_id=test_user_html',
+                'ws://localhost:8080/ws?user_id=test_user_html',
+                'ws://localhost:3001/ws?user_id=test_user_html'
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryConnect() {
+                if (currentIndex >= urls.length) {
+                    updateStatus('All connection attempts failed', 'error');
+                    addMessage('❌ All WebSocket URLs failed');
+                    return;
+                }
+                
+                const url = urls[currentIndex];
+                addMessage(`Trying to connect to: ${url}`);
+                updateStatus(`Connecting to ${url}...`, 'disconnected');
+                
+                try {
+                    ws = new WebSocket(url);
+                    
+                    const timeout = setTimeout(() => {
+                        if (ws.readyState === WebSocket.CONNECTING) {
+                            ws.close();
+                            addMessage(`❌ Connection timeout for ${url}`);
+                            currentIndex++;
+                            tryConnect();
+                        }
+                    }, 5000);
+                    
+                    ws.onopen = function() {
+                        clearTimeout(timeout);
+                        updateStatus(`Connected to ${url}`, 'connected');
+                        addMessage(`✅ Connected successfully to ${url}`);
+                    };
+                    
+                    ws.onmessage = function(event) {
+                        addMessage(`📨 Received: ${event.data}`);
+                    };
+                    
+                    ws.onclose = function(event) {
+                        clearTimeout(timeout);
+                        updateStatus('Disconnected', 'disconnected');
+                        addMessage(`🔌 Connection closed (code: ${event.code}, reason: ${event.reason})`);
+                    };
+                    
+                    ws.onerror = function(error) {
+                        clearTimeout(timeout);
+                        addMessage(`❌ Connection error for ${url}: ${error}`);
+                        currentIndex++;
+                        setTimeout(tryConnect, 1000);
+                    };
+                    
+                } catch (error) {
+                    addMessage(`❌ Failed to create WebSocket for ${url}: ${error}`);
+                    currentIndex++;
+                    setTimeout(tryConnect, 1000);
+                }
+            }
+            
+            tryConnect();
+        }
+        
+        function disconnectWebSocket() {
+            if (ws) {
+                ws.close();
+                ws = null;
+                updateStatus('Disconnected', 'disconnected');
+                addMessage('🔌 Manually disconnected');
+            }
+        }
+        
+        function sendTestMessage() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const message = {
+                    type: 'test_message',
+                    payload: { 
+                        message: 'Hello from HTML test page!',
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                ws.send(JSON.stringify(message));
+                addMessage(`📤 Sent: ${JSON.stringify(message)}`);
+            } else {
+                addMessage('❌ Cannot send message - not connected');
+            }
+        }
+        
+        // Auto-connect on page load
+        window.onload = function() {
+            addMessage('Page loaded, starting connection test...');
+            connectWebSocket();
+        };
+    </script>
+</body>
+</html>

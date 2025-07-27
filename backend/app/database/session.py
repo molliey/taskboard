@@ -1,15 +1,27 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from pydantic_settings import BaseSettings
+from typing import Generator
+import os
+from dotenv import load_dotenv
 
-class Settings(BaseSettings):
-    DATABASE_URL: str
+load_dotenv()
 
-    class Config:
-        env_file = ".env"
+# 修改数据库连接字符串以匹配Docker Compose配置
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/taskboard")
 
-settings = Settings()
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    pool_size=10,
+    max_overflow=20
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-engine = create_engine(settings.DATABASE_URL, future=True)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+def get_db() -> Generator:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
