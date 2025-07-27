@@ -10,7 +10,7 @@ from app.utils.auth import get_current_user
 
 router = APIRouter(prefix="/columns", tags=["columns"])
 
-@router.post("/", response_model=BoardColumn)
+@router.post("/", response_model=BoardColumn, status_code=201)
 def create_column(
     column: BoardColumnCreate,
     current_user: User = Depends(get_current_user),

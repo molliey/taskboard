@@ -1,4 +1,4 @@
-# Core Production Dependencies
+# Production Dependencies Only
 fastapi==0.116.1
 uvicorn==0.35.0
 sqlalchemy==2.0.41
@@ -11,10 +11,3 @@ python-multipart==0.0.20
 python-dotenv==1.1.1
 alembic==1.16.4
 websockets==15.0.1
-
-# Development & Testing Dependencies
-pytest==8.4.1
-pytest-cov==6.2.1
-httpx==0.28.1
-faker==37.4.2
-factory-boy==3.3.3

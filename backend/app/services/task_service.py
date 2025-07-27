@@ -1,3 +1,8 @@
+"""
+Task service layer module
+Provides all business logic for task operations including CRUD, position management, status changes
+Core business logic layer for task management system
+"""
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, or_
 from app.models.task import Task, TaskStatus as DBTaskStatus
@@ -6,21 +11,27 @@ from typing import Optional, List
 from datetime import datetime
 
 class TaskService:
-    """Service class for task-related business logic."""
+    """
+    Task service class - handles all task-related business logic
+    
+    Main responsibilities:
+    - Task CRUD operations
+    - Task position management (drag-drop sorting)
+    - Task status changes
+    - Task search and filtering
+    """
     
     @staticmethod
     def create_task(db: Session, task: TaskCreate) -> Task:
         """
-        Create a new task in a column.
+        Create a new task - core business logic
         
-        Args:
-            db: Database session
-            task: Task creation data
-            
-        Returns:
-            Created task object
+        Key features:
+        - Automatically adjusts existing task positions
+        - Creates task record
+        - Returns complete task object
         """
-        # Adjust positions of existing tasks if necessary
+        # Position management: make space for new task
         existing_tasks = db.query(Task).filter(
             and_(
                 Task.column_id == task.column_id,
@@ -28,10 +39,11 @@ class TaskService:
             )
         ).all()
         
+        # Increment positions of tasks at and after new position
         for t in existing_tasks:
             t.position += 1
         
-        # Create the new task
+        # Create new task record
         db_task = Task(
             title=task.title,
             description=task.description,
@@ -49,53 +61,39 @@ class TaskService:
     @staticmethod
     def get_task(db: Session, task_id: int) -> Optional[Task]:
         """
-        Get a task by ID with assignee information.
-        
-        Args:
-            db: Database session
-            task_id: Task ID
-            
-        Returns:
-            Task object with assignee or None
+        Get task by ID with optimized query using joinedload
         """
         return db.query(Task).options(
-            joinedload(Task.assignee)
+            joinedload(Task.assignee)  # Preload assignee info to avoid N+1 queries
         ).filter(Task.id == task_id).first()
     
     @staticmethod
     def get_column_tasks(db: Session, column_id: int) -> List[Task]:
         """
-        Get all tasks in a column, ordered by position.
+        Get all tasks in a column
         
-        Args:
-            db: Database session
-            column_id: Column ID
-            
-        Returns:
-            List of tasks with assignee information
+        Key features:
+        - Ordered by position (supports drag-drop)
+        - Preloads assignee info (performance optimization)
         """
         return db.query(Task).options(
-            joinedload(Task.assignee)
+            joinedload(Task.assignee)  # Avoid N+1 query problem
         ).filter(
             Task.column_id == column_id
-        ).order_by(Task.position).all()
+        ).order_by(Task.position).all()  # Order by position for drag-drop
     
     @staticmethod
     def get_user_tasks(db: Session, user_id: int, status: Optional[str] = None) -> List[Task]:
         """
-        Get all tasks assigned to a user, optionally filtered by status.
+        Get tasks assigned to a user
         
-        Args:
-            db: Database session
-            user_id: User ID
-            status: Optional status filter
-            
-        Returns:
-            List of tasks assigned to the user
+        Supports:
+        - Status filtering (personal workload management)
+        - Preloaded related data (performance optimization)
         """
         query = db.query(Task).options(
             joinedload(Task.assignee),
-            joinedload(Task.column)
+            joinedload(Task.column)  # Preload column info
         ).filter(Task.assignee_id == user_id)
         
         if status:
@@ -106,15 +104,9 @@ class TaskService:
     @staticmethod
     def update_task(db: Session, task_id: int, task_update: TaskUpdate) -> Optional[Task]:
         """
-        Update task information.
+        Update task information
         
-        Args:
-            db: Database session
-            task_id: Task ID
-            task_update: Update data
-            
-        Returns:
-            Updated task object or None
+        Supports partial field updates, automatic position changes and status conversion
         """
         db_task = db.query(Task).filter(Task.id == task_id).first()
         if not db_task:
@@ -134,7 +126,7 @@ class TaskService:
                     db_task.position, update_data["position"]
                 )
         
-        # Update the task
+        # Update task fields
         for field, value in update_data.items():
             setattr(db_task, field, value)
         
@@ -145,14 +137,9 @@ class TaskService:
     @staticmethod
     def move_task(db: Session, task_move: TaskMove) -> Optional[Task]:
         """
-        Move a task to a different column and/or position.
+        Move a task to a different column and/or position
         
-        Args:
-            db: Database session
-            task_move: Move operation data
-            
-        Returns:
-            Moved task object or None
+        Core functionality: Supports cross-column drag-drop and position adjustment
         """
         db_task = db.query(Task).filter(Task.id == task_move.task_id).first()
         if not db_task:
@@ -177,6 +164,7 @@ class TaskService:
                     Task.position > old_position
                 )
             ).all()
+            
             for t in old_column_tasks:
                 t.position -= 1
             
@@ -187,6 +175,7 @@ class TaskService:
                     Task.position >= task_move.position
                 )
             ).all()
+            
             for t in new_column_tasks:
                 t.position += 1
         
@@ -201,14 +190,9 @@ class TaskService:
     @staticmethod
     def delete_task(db: Session, task_id: int) -> bool:
         """
-        Delete a task.
+        Delete a task
         
-        Args:
-            db: Database session
-            task_id: Task ID
-            
-        Returns:
-            True if deleted, False if not found
+        Automatically reorders remaining tasks to maintain position continuity
         """
         db_task = db.query(Task).filter(Task.id == task_id).first()
         if not db_task:
@@ -232,15 +216,9 @@ class TaskService:
     @staticmethod
     def search_tasks(db: Session, project_id: int, query: str) -> List[Task]:
         """
-        Search tasks within a project.
+        Search tasks within a project
         
-        Args:
-            db: Database session
-            project_id: Project ID
-            query: Search query
-            
-        Returns:
-            List of matching tasks
+        Supports fuzzy search on title and description using LIKE queries
         """
         from app.models.column import BoardColumn
         
@@ -266,17 +244,12 @@ class TaskService:
         new_position: int
     ):
         """
-        Helper method to reorder tasks within a column.
+        Helper method to reorder tasks within a column
         
-        Args:
-            db: Database session
-            column_id: Column ID
-            task_id: Task being moved
-            old_position: Current position
-            new_position: Target position
+        Core algorithm: Adjust positions of affected tasks based on movement direction
         """
         if new_position > old_position:
-            # Moving down
+            # Moving down: decrement positions of tasks in between
             affected_tasks = db.query(Task).filter(
                 and_(
                     Task.column_id == column_id,
@@ -288,7 +261,7 @@ class TaskService:
             for t in affected_tasks:
                 t.position -= 1
         elif new_position < old_position:
-            # Moving up
+            # Moving up: increment positions of tasks in between
             affected_tasks = db.query(Task).filter(
                 and_(
                     Task.column_id == column_id,

@@ -9,7 +9,7 @@ from app.utils.auth import get_current_user
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
-@router.post("/", response_model=Project)
+@router.post("/", response_model=Project, status_code=201)
 def create_project(
     project: ProjectCreate,
     current_user: User = Depends(get_current_user),

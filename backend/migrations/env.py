@@ -11,7 +11,7 @@ from alembic import context
 from app.database.base import Base
 from app.database.session import DATABASE_URL
 
-from app import models  # 确保 models/__init__.py 导入所有模型（User, Project, Task 等）
+from app import models  # Ensure models/__init__.py imports all models (User, Project, Task, etc.)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", DATABASE_URL)

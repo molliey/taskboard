@@ -1,24 +1,30 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from typing import Generator
-import os
-from dotenv import load_dotenv
+from app.core.config import settings
 
-load_dotenv()
+# Create database engine based on environment
+if settings.TESTING:
+    # Use test database for testing
+    engine = create_engine(
+        settings.TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False} if "sqlite" in settings.TEST_DATABASE_URL else {},
+        pool_pre_ping=False
+    )
+else:
+    # Production/Development database
+    engine = create_engine(
+        settings.DATABASE_URL,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        pool_size=10,
+        max_overflow=20
+    )
 
-# 修改数据库连接字符串以匹配Docker Compose配置
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/taskboard")
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20
-)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db() -> Generator:
+    """Dependency to get database session"""
     db = SessionLocal()
     try:
         yield db

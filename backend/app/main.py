@@ -1,3 +1,7 @@
+"""
+FastAPI application main entry point
+Handles app initialization, middleware configuration, route registration and WebSocket endpoints
+"""
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import user, project, column, task
@@ -5,7 +9,7 @@ from app.api.websocket import websocket_endpoint
 from app.database.base import Base
 from app.database.session import engine
 
-# Create tables
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -14,25 +18,25 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS
+# Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],  # Your frontend URLs
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(user.router)
-app.include_router(project.router)
-app.include_router(column.router)
-app.include_router(task.router)
+# Register API routes
+app.include_router(user.router, prefix="/api")
+app.include_router(project.router, prefix="/api")
+app.include_router(column.router, prefix="/api")
+app.include_router(task.router, prefix="/api")
 
-# WebSocket endpoint
-@app.websocket("/ws")
-async def websocket_route(websocket: WebSocket, user_id: str = "anonymous"):
-    await websocket_endpoint(websocket, user_id)
+# WebSocket endpoint for real-time communication
+@app.websocket("/ws/{project_id}")
+async def websocket_route(websocket: WebSocket, project_id: int, token: str = None):
+    await websocket_endpoint(websocket, project_id, token)
 
 @app.get("/")
 def read_root():

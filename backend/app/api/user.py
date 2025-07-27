@@ -13,7 +13,7 @@ from app.utils.auth import (
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("/register", response_model=User)
+@router.post("/register", response_model=User, status_code=201)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user account.
@@ -72,6 +72,23 @@ def read_users_me(current_user: User = Depends(get_current_user)):
     Returns id, email, username, and full_name only.
     """
     return current_user
+
+@router.put("/me", response_model=User)
+def update_current_user(
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update current user profile.
+    
+    Users can only update their own profile.
+    """
+    db_user = UserService.update_user(db, user_id=current_user.id, user_update=user_update)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return db_user
 
 @router.get("/", response_model=List[User])
 def read_users(
