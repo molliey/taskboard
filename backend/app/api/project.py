@@ -120,7 +120,7 @@ def delete_project(
 def add_member(
     project_id: int,
     user_id: int,
-    role: str = Query("member", regex="^(admin|member)$"),
+    role: str = Query("member", pattern="^(admin|member)$"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

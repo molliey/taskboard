@@ -92,7 +92,7 @@ class ColumnService:
         if not db_column:
             return None
         
-        update_data = column_update.dict(exclude_unset=True)
+        update_data = column_update.model_dump(exclude_unset=True)
         
         # Handle position change
         if "position" in update_data and update_data["position"] != db_column.position:

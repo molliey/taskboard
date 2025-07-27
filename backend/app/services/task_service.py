@@ -120,7 +120,7 @@ class TaskService:
         if not db_task:
             return None
         
-        update_data = task_update.dict(exclude_unset=True)
+        update_data = task_update.model_dump(exclude_unset=True)
         
         # Convert status enum if present
         if "status" in update_data:

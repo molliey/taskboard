@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import Optional, List
 from app.schemas.user import User
@@ -32,8 +32,7 @@ class ProjectMember(ProjectMemberBase):
     joined_at: datetime
     user: User
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Schema for project without nested data
 class Project(ProjectBase):
@@ -45,8 +44,7 @@ class Project(ProjectBase):
     owner: User
     members: List[ProjectMember] = []
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Schema for project with columns (detailed view)
 class ProjectWithColumns(Project):

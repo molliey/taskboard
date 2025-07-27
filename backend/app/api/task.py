@@ -83,7 +83,7 @@ def read_column_tasks(
 
 @router.get("/my-tasks", response_model=List[Task])
 def read_my_tasks(
-    status: Optional[str] = Query(None, regex="^(todo|in_progress|done)$"),
+    status: Optional[str] = Query(None, pattern="^(todo|in_progress|done)$"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

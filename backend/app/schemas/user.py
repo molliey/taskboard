@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -32,8 +32,7 @@ class UserInDB(UserBase):
     updated_at: datetime
     hashed_password: str
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Schema for API responses (public)
 class User(BaseModel):
@@ -43,8 +42,7 @@ class User(BaseModel):
     username: str
     full_name: Optional[str] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Authentication schemas
 class UserLogin(BaseModel):

@@ -128,7 +128,7 @@ class UserService:
         if not db_user:
             return None
         
-        update_data = user_update.dict(exclude_unset=True)
+        update_data = user_update.model_dump(exclude_unset=True)
         
         # Handle password update separately
         if "password" in update_data:

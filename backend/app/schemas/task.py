@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import Optional
 from enum import Enum
@@ -49,11 +49,7 @@ class Task(TaskBase):
     updated_at: datetime
     assignee: Optional[User] = None
     
-    class Config:
-        from_attributes = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat() if v else None
-        }
+    model_config = ConfigDict(from_attributes=True)
 
 # Schema for moving a task (drag and drop)
 class TaskMove(BaseModel):
