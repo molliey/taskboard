@@ -40,10 +40,12 @@ A modern task management platform with comprehensive project management and real
 - **Docker & Docker Compose** (optional, for easy setup)
 
 ### 🟢 One-command local run (frontend + backend locally, only Postgres in Docker)
+
 ```bash
 bash scripts/start.sh
-# ... later
-bash scripts/stop.sh```
+
+bash scripts/stop.sh
+```
 
 ### Access Application
 - **Frontend**: http://localhost:5173
