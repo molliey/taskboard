@@ -134,11 +134,9 @@ Authorization: Bearer <your-jwt-token>
 
 ## 🧪 Testing
 
-### Current Test Status
-- **Total Tests**: 145
-- **Passed**: 145 ✅
-- **Failed**: 0 ❌
-- **Test Coverage**: 100%
+### Test Types
+- **E2E Tests**: Test complete business workflows
+- **Unit Tests**: Test individual components and services
 
 ### Run Tests
 ```bash
@@ -155,9 +153,15 @@ python -m pytest tests/unit
 
 ```
 
-### Test Types
-- **E2E Tests**: Test complete business workflows
-- **Unit Tests**: Test individual components and services
+### Current Test Status
+- **Total Tests**: 145
+- **Passed**: 145 ✅
+- **Failed**: 0 ❌
+- **Test Coverage**: 100%
+
+
+
+
 
 
 ## 👥 Team
