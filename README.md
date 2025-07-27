@@ -39,17 +39,11 @@ A modern task management platform with comprehensive project management and real
 - **PostgreSQL 13+**
 - **Docker & Docker Compose** (optional, for easy setup)
 
-
-### 🐳 Docker Setup (Recommended)
-
+### 🟢 One-command local run (frontend + backend locally, only Postgres in Docker)
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd genspark-board
-
-# Start services
-docker-compose up --build
-```
+bash scripts/start.sh
+# ... later
+bash scripts/stop.sh
 
 #### Access Application
 - **Frontend**: http://localhost:5173
