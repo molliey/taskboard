@@ -55,7 +55,7 @@ cd frontend
 npm install
 ```
 
-#### 🟢 Quick Setup (frontend + backend + Docker)
+### 🟢 Run App Quickly (frontend + backend + Docker)
 
 ```bash
 bash scripts/start.sh
