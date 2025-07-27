@@ -2,6 +2,8 @@
 
 A modern task management platform with comprehensive project management and real-time collaboration features.
 
+![Taskboard Screenshot](https://github.com/user-attachments/assets/7914dff3-e7e4-4d74-bae9-cbc64b909f12.png>）
+
 ## 📋 Features
 
 ### ✅ Features
