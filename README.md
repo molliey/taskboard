@@ -39,7 +39,23 @@ A modern task management platform with comprehensive project management and real
 - **PostgreSQL 13+**
 - **Docker & Docker Compose** (optional, for easy setup)
 
-### 🟢 Quick Setup (frontend + backend + Docker)
+### 📦 Install Dependencies (One Time)
+
+#### Backend (FastAPI)
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+#### Frontend(React+Vite)
+```bash
+cd frontend
+npm install
+```
+
+#### 🟢 Quick Setup (frontend + backend + Docker)
 
 ```bash
 bash scripts/start.sh
@@ -51,7 +67,6 @@ bash scripts/stop.sh
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
-
 
 ## 📁 Project Structure
 
