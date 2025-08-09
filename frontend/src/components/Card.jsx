@@ -1,11 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
-import userDataService from "../services/userDataService";
+// 移除本地 mock 用户来源，显示逻辑改为后端返回的 name
 
-const Card = ({ task, onDelete, onMove, availableColumns, currentColumn }) => {
+const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColumn }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showAssigneeInfo, setShowAssigneeInfo] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTask, setEditTask] = useState({
+    title: task.title || '',
+    description: task.description || '',
+    due_date: task.due_date || '',
+    assignee_id: task.assignee_id ?? 0,
+  });
   const menuRef = useRef(null);
   const assigneeRef = useRef(null);
 
@@ -82,12 +89,55 @@ const Card = ({ task, onDelete, onMove, availableColumns, currentColumn }) => {
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
+    // 直接显示选择的日期，不进行复杂格式化
+    return dateString;
   };
 
   // Determine if task is overdue
   const isOverdue = task.due_date && new Date(task.due_date) < new Date();
+
+  // Helper: get member info from backend-loaded members
+  const getMemberById = (id) => {
+    const list = Array.isArray(window.__projectMembers) ? window.__projectMembers : [];
+    return list.find((m) => parseInt(m.id, 10) === parseInt(id, 10));
+  };
+
+  const handleEditInputChange = (field, value) => {
+    setEditTask(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleStartEdit = () => {
+    setIsEditing(true);
+    setShowMenu(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditTask({
+      title: task.title || '',
+      description: task.description || '',
+      due_date: task.due_date || '',
+      assignee_id: task.assignee_id ?? 0,
+    });
+  };
+
+  const handleSaveEdit = async (e) => {
+    e?.stopPropagation?.();
+    try {
+      setIsLoading(true);
+      const parsedAssignee = parseInt(editTask.assignee_id, 10);
+      const updates = {
+        title: editTask.title.trim(),
+        description: (editTask.description ?? '').toString(),
+        due_date: (editTask.due_date ?? '').toString(),
+        assignee_id: Number.isNaN(parsedAssignee) ? 0 : parsedAssignee,
+      };
+      await onUpdate?.(updates);
+      setIsEditing(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div 
@@ -96,8 +146,65 @@ const Card = ({ task, onDelete, onMove, availableColumns, currentColumn }) => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="card-content">
-        <div className="card-title">{task.title}</div>
+      <div className="card-content" onClick={() => !isEditing && handleStartEdit()}>
+        {!isEditing && <div className="card-title">{task.title}</div>}
+        {isEditing && (
+          <div className="inline-task-form">
+            <input
+              type="text"
+              value={editTask.title}
+              onChange={(e) => handleEditInputChange('title', e.target.value)}
+              className="task-input-title"
+              autoFocus
+            />
+            <textarea
+              value={editTask.description}
+              onChange={(e) => handleEditInputChange('description', e.target.value)}
+              className="task-input-description"
+              rows={2}
+            />
+            <div className="task-input-row">
+              <input
+                type="date"
+                value={editTask.due_date}
+                onChange={(e) => handleEditInputChange('due_date', e.target.value)}
+                className="task-input-date"
+                min="2025-01-01"
+                max="2025-12-31"
+              />
+            </div>
+            <div className="task-assignee-row">
+              <div className="assignee-selection">
+                <span className="assignee-label">Assignee:</span>
+                <div className="assignee-options">
+                  <button
+                    type="button"
+                    className={`assignee-option ${!editTask.assignee_id ? 'selected' : ''}`}
+                    onClick={() => handleEditInputChange('assignee_id', 0)}
+                  >
+                    <span className="default-avatar">👤</span>
+                    <span>Unassigned</span>
+                  </button>
+                  {(window.__projectMembers || []).map(member => (
+                    <button
+                      key={member.id}
+                      type="button"
+                      className={`assignee-option ${parseInt(editTask.assignee_id, 10) === member.id ? 'selected' : ''}`}
+                      onClick={() => handleEditInputChange('assignee_id', member.id)}
+                    >
+                      <span className="member-avatar">{member.avatar || '👤'}</span>
+                      <span>{member.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="task-form-buttons">
+              <button type="button" className="btn-primary" onClick={handleSaveEdit} disabled={!editTask.title.trim()}>Save</button>
+              <button type="button" className="btn-secondary" onClick={handleCancelEdit}>Cancel</button>
+            </div>
+          </div>
+        )}
         
         {task.description && (
           <div className="card-description">{task.description}</div>
@@ -125,12 +232,15 @@ const Card = ({ task, onDelete, onMove, availableColumns, currentColumn }) => {
                   setShowAssigneeInfo(!showAssigneeInfo);
                 }}
               >
-                <span className="assignee-avatar">
-                  {userDataService.getUser(task.assignee_id)?.avatar || '👤'}
-                </span>
-                <span className="assignee-name">
-                  {userDataService.getUserDisplayName(task.assignee_id)}
-                </span>
+                {(() => {
+                  const m = getMemberById(task.assignee_id);
+                  return (
+                    <>
+                      <span className="assignee-avatar">{m?.avatar || '👤'}</span>
+                      <span className="assignee-name">{m?.name || 'Unknown User'}</span>
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <div className="card-assignee unassigned">
@@ -142,14 +252,12 @@ const Card = ({ task, onDelete, onMove, availableColumns, currentColumn }) => {
             {showAssigneeInfo && task.assignee_id && (
               <div className="assignee-info-dropdown">
                 {(() => {
-                  const user = userDataService.getUser(task.assignee_id);
-                  return user ? (
+                  const m = getMemberById(task.assignee_id);
+                  return (
                     <>
-                      <div className="assignee-name">{user.name}</div>
-                      <div className="assignee-email">{user.email}</div>
+                      <div className="assignee-name">{m?.name || 'Unknown User'}</div>
+                      {m?.email && <div className="assignee-email">{m.email}</div>}
                     </>
-                  ) : (
-                    <div className="assignee-name">Unknown User</div>
                   );
                 })()}
               </div>
@@ -158,8 +266,6 @@ const Card = ({ task, onDelete, onMove, availableColumns, currentColumn }) => {
         </div>
         
         <div className="card-footer">
-          <div className="card-id">#{task.id}</div>
-          
           {/* Menu button */}
           <button 
             className="card-menu-btn"

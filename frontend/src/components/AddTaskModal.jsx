@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import userDataService from "../services/userDataService";
+import React, { useEffect, useState } from "react";
+import { projectAPI } from "../api/taskboard";
 
 const AddTaskModal = ({ onClose, onSubmit, projectId }) => {
   const [title, setTitle] = useState("");
@@ -7,8 +7,17 @@ const AddTaskModal = ({ onClose, onSubmit, projectId }) => {
   const [dueDate, setDueDate] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   
-  // 获取项目成员作为可选的assignee
-  const projectMembers = projectId ? userDataService.getProjectMembers(projectId) : [];
+  // 从后端加载项目成员作为可选的 assignee（替换本地 mock）
+  const [projectMembers, setProjectMembers] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!projectId) return;
+      const members = await projectAPI.getMembers(projectId);
+      setProjectMembers(members || []);
+    };
+    load();
+  }, [projectId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -51,6 +60,7 @@ const AddTaskModal = ({ onClose, onSubmit, projectId }) => {
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             className="border rounded px-3 py-2 w-full"
+            placeholder="Select due date"
           />
 
           <select

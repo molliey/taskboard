@@ -25,6 +25,9 @@ const Board = ({ projectId = 1, onDataChange }) => {
     setError("");
     try {
       const data = await projectAPI.getBoard(pid);
+      // 将项目成员提供给全局（仅前端内存，不改后端逻辑）供 Card 编辑器使用
+      const members = await projectAPI.getMembers(pid);
+      window.__projectMembers = members || [];
       setColumns(normalizeColumns(data || {}));
     } catch (e) {
       setError(e?.message || "Failed to load board");
@@ -86,12 +89,18 @@ const Board = ({ projectId = 1, onDataChange }) => {
   const handleAddTaskInline = (columnTitle) => async (newTask) => {
     try {
       const currentUserId = authService.getCurrentUser()?.id || 0;
+      const assigneeId =
+        newTask.assignee_id === null || newTask.assignee_id === undefined || newTask.assignee_id === ''
+          ? 0
+          : parseInt(newTask.assignee_id, 10);
+
       const created = await projectAPI.createTask(projectId, {
         title: newTask.title,
         description: (newTask.description ?? "").toString(),
         tag: (newTask.tag && newTask.tag.trim()) ? newTask.tag.trim() : "GENERAL",
         due_date: (newTask.due_date ?? "").toString(),
-        assignee_id: Number.isInteger(newTask.assignee_id) ? newTask.assignee_id : currentUserId,
+        // 统一将 assignee_id 转为整数；未选择则为 0
+        assignee_id: Number.isNaN(assigneeId) ? 0 : assigneeId,
         column_name: columnTitle,
       });
       setColumns((prev) => ({
@@ -123,6 +132,34 @@ const Board = ({ projectId = 1, onDataChange }) => {
       });
     } catch (e) {
       console.error("Move task failed", e);
+    }
+  };
+
+  // Update task fields (title/description/due_date/assignee_id)
+  const handleUpdateTask = async (taskId, columnTitle, updates) => {
+    try {
+      const updated = await projectAPI.updateTask(projectId, taskId, updates);
+      setColumns((prev) => ({
+        ...prev,
+        [columnTitle]: (prev[columnTitle] || []).map((t) =>
+          t.id === taskId
+            ? {
+                ...t,
+                ...updated,
+                assignee_id:
+                  updated?.assignee_id != null && updated?.assignee_id !== ''
+                    ? parseInt(updated.assignee_id, 10)
+                    : t.assignee_id,
+                // 可选：将后端返回的成员信息扩展到任务（若后端未来支持）
+                assignee_name: updated?.assignee_name ?? t.assignee_name,
+                assignee_email: updated?.assignee_email ?? t.assignee_email,
+                assignee_avatar: updated?.assignee_avatar ?? t.assignee_avatar,
+              }
+            : t
+        ),
+      }));
+    } catch (e) {
+      console.error('Update task failed', e);
     }
   };
 
@@ -166,6 +203,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
           onAddClick={handleAddTaskInline(title)}
           onMoveTask={handleMoveTask}
           onDeleteTask={handleDeleteTask}
+          onUpdateTask={handleUpdateTask}
           availableColumns={Object.keys(columns)}
           currentColumn={title}
           projectId={projectId}

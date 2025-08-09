@@ -3,14 +3,14 @@ import React, { useState, useRef, useEffect } from "react";
 import Card from "./Card";
 import { projectAPI } from "../api/taskboard";
 import websocketService from "../services/websocketService";
+// 移除本地 mock 用户，全部从后端加载成员
 
-const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, availableColumns, currentColumn, projectId }) => {
+const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onUpdateTask, availableColumns, currentColumn, projectId }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    tag: '',
     due_date: '',
     assignee_id: null
   });
@@ -63,7 +63,6 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, availableC
     setNewTask({
       title: '',
       description: '',
-      tag: '',
       due_date: '',
       assignee_id: null
     });
@@ -74,7 +73,6 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, availableC
     setNewTask({
       title: '',
       description: '',
-      tag: '',
       due_date: '',
       assignee_id: null
     });
@@ -88,7 +86,7 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, availableC
       ...newTask,
       title: newTask.title.trim(),
       description: newTask.description.trim(),
-      tag: newTask.tag.trim() || 'GENERAL'
+      tag: 'GENERAL' // 使用默认tag值
     };
 
     if (onAddClick) {
@@ -150,6 +148,7 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, availableC
             key={task.id} 
             task={task} 
             onDelete={() => onDeleteTask(task.id, currentColumn)}
+            onUpdate={(updates) => onUpdateTask(task.id, currentColumn, updates)}
             onMove={(toColumn) => onMoveTask(task.id, currentColumn, toColumn)}
             availableColumns={availableColumns}
             currentColumn={currentColumn}
@@ -186,14 +185,6 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, availableC
             
             <div className="task-input-row">
               <input
-                type="text"
-                placeholder="Tag"
-                value={newTask.tag}
-                onChange={(e) => handleInputChange('tag', e.target.value)}
-                className="task-input-tag"
-              />
-              
-              <input
                 type="date"
                 value={newTask.due_date}
                 onChange={(e) => handleInputChange('due_date', e.target.value)}
@@ -202,6 +193,8 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, availableC
                 max="2025-12-31"
               />
             </div>
+            
+            {/* 移除选择的时间预览显示 */}
             
             <div className="task-assignee-row">
               <div className="assignee-selection">
@@ -229,6 +222,8 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, availableC
                 </div>
               </div>
             </div>
+            
+            {/* 移除选择的负责人预览显示 */}
             
             <div className="task-form-buttons">
               <button type="submit" className="btn-primary" disabled={!newTask.title.trim()}>

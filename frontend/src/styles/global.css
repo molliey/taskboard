@@ -46,15 +46,24 @@ body {
   display: flex;
   gap: 16px;
   color: #333;
+  align-items: center;
 }
 
 .action {
   cursor: pointer;
   transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  margin-top: 2px;
 }
 
 .action:hover {
   color: #0747a6;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* User Menu Styles */
@@ -347,7 +356,7 @@ body {
 }
 
 .column {
-  background-color: #f0f0f0;
+  background-color: #d4edda;
   padding: 16px;
   width: 22%;
   border-radius: 8px;
@@ -365,10 +374,11 @@ body {
 }
 
 .count {
-  background-color: #d9e2f3;
+  background-color: #c3e6cb;
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.8rem;
+  color: #155724;
 }
 
 .card-list {
@@ -450,7 +460,7 @@ body {
 
 .create-button {
   margin-top: 12px;
-  color: #4c9aff;
+  color: #28a745;
   cursor: pointer;
   font-weight: bold;
   font-size: 14px;
@@ -609,11 +619,16 @@ body {
 
 .card-due-date {
   font-size: 11px;
-  color: #5e6c84;
+  color: #0052cc;
   margin-bottom: 4px;
   display: flex;
   align-items: center;
   gap: 4px;
+  background-color: #e3f2fd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #bbdefb;
+  font-weight: 500;
 }
 
 .card-due-date.overdue {
@@ -632,17 +647,18 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
+  padding: 4px 8px;
 }
 
 .card-assignee.clickable {
   cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 3px;
-  transition: background-color 0.2s ease;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
 }
 
 .card-assignee.clickable:hover {
-  background-color: #f4f5f7;
+  background-color: #e3f2fd;
+  border-color: #bbdefb;
 }
 
 .card-assignee.assigned {
@@ -700,15 +716,9 @@ body {
 
 .card-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 8px;
-}
-
-.card-id {
-  font-size: 10px;
-  color: #97a0af;
-  font-weight: 500;
 }
 
 .card-menu-btn {
@@ -892,12 +902,12 @@ body {
 }
 
 .column-drag-over {
-  background-color: #e3f2fd;
-  border: 2px dashed #2196f3;
+  background-color: #c3e6cb;
+  border: 2px dashed #28a745;
 }
 
 .column-drag-over .column-header {
-  color: #2196f3;
+  color: #28a745;
 }
 
 /* 任务指派相关样式 */
@@ -1413,7 +1423,7 @@ body {
 
 /* Inline Task Creation Form */
 .inline-task-form {
-  background: white;
+  background: #fff;
   border: 1px solid #dfe1e6;
   border-radius: 6px;
   padding: 12px;
@@ -1490,6 +1500,20 @@ body {
 .task-input-date:focus {
   outline: none;
   border-color: #0052cc;
+}
+
+.selected-date-display {
+  font-size: 11px;
+  color: #0052cc;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+}
+
+.selected-assignee-display {
+  font-size: 11px;
+  color: #0052cc;
+  padding: 4px 8px;
+  margin-bottom: 8px;
 }
 
 .task-assignee-row {

@@ -17,6 +17,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {"message": "TaskBoard API is running", "status": "healthy"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "timestamp": "2025-01-01T00:00:00Z"}
+
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(tasks.router, prefix="/api/projects", tags=["tasks"])

@@ -72,6 +72,14 @@ class UserDataService {
       avatar: "👩‍🎨",
       role: "Graphic Designer"
     });
+
+    this.users.set(14, {
+      id: 14,
+      name: "Tommy",
+      email: "tommy@gmail.com",
+      avatar: "👨‍💻",
+      role: "Developer"
+    });
   }
 
   // 初始化项目成员分配
@@ -105,7 +113,7 @@ class UserDataService {
   // 获取用户显示名称
   getUserDisplayName(userId) {
     const user = this.getUser(userId);
-    return user ? user.name : `User ${userId}`;
+    return user ? user.name : 'Unassigned';
   }
 
   // 获取用户邮箱
