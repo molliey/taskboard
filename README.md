@@ -234,6 +234,8 @@ Follow the manual testing guide for end-to-end testing:
 
 ## 🏗️ Architecture
 
+
+
 ### Data Flow
 1. **Frontend** → API calls → **Backend FastAPI**
 2. **Backend** → Data operations → **Redis**
