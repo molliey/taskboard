@@ -228,18 +228,9 @@ body {
   width: 60px;
 }
 
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.sidebar-header { display: block; }
 
-.collapse-btn {
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-}
+/* remove collapse button styles (no longer used) */
 
 .project-list {
   list-style: none;
@@ -260,6 +251,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  justify-content: space-between;
 }
 
 .project-item:hover {
@@ -275,6 +267,21 @@ body {
 
 .project-name {
   flex: 1;
+}
+
+.delete-project-btn {
+  background: none;
+  border: 1px solid #e5e5e7;
+  color: #d04437;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.delete-project-btn:hover {
+  background: #ffebe6;
+  border-color: #ffbdad;
 }
 
 .add-project-btn {
@@ -699,6 +706,21 @@ body {
   z-index: 1000;
   min-width: 200px;
   padding: 8px;
+  margin-top: 2px;
+}
+
+.assignee-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  z-index: 1000;
+  min-width: 220px;
+  max-height: 180px;
+  overflow-y: auto;
   margin-top: 2px;
 }
 
@@ -1291,14 +1313,7 @@ body {
   border-top: 1px solid #e5e5e7;
 }
 
-.section-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #444;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 0 12px 0;
-}
+.section-title { font-size: 14px; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px 0; }
 
 .project-members-list {
   display: flex;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { projectAPI } from "../api/taskboard";
+import websocketService from "../services/websocketService";
 import "../styles/global.css";
 
 const Summary = ({ tasks, columns, projectId }) => {
@@ -17,6 +18,7 @@ const Summary = ({ tasks, columns, projectId }) => {
   });
   
   const [projectMembers, setProjectMembers] = useState([]);
+  const [projectName, setProjectName] = useState("");
   const [workloadData, setWorkloadData] = useState([]);
 
   useEffect(() => {
@@ -30,6 +32,41 @@ const Summary = ({ tasks, columns, projectId }) => {
       setProjectMembers(members || []);
     };
     loadMembers();
+    
+    // 订阅成员变更事件，实时刷新右侧成员列表
+    const onMemberAdded = (payload) => {
+      if (payload?.project_id === projectId) {
+        loadMembers();
+      }
+    };
+    const onMemberRemoved = (payload) => {
+      if (payload?.project_id === projectId) {
+        loadMembers();
+      }
+    };
+    const unsubAdded = websocketService.subscribe('member_added', onMemberAdded);
+    const unsubRemoved = websocketService.subscribe('member_removed', onMemberRemoved);
+    return () => {
+      unsubAdded?.();
+      unsubRemoved?.();
+    };
+  }, [projectId]);
+
+  // Load project name for header display
+  useEffect(() => {
+    const loadProject = async () => {
+      if (!projectId) {
+        setProjectName("");
+        return;
+      }
+      try {
+        const p = await projectAPI.getProject(projectId);
+        setProjectName(p?.name || "");
+      } catch (_) {
+        setProjectName("");
+      }
+    };
+    loadProject();
   }, [projectId]);
 
   useEffect(() => {
@@ -218,10 +255,8 @@ const Summary = ({ tasks, columns, projectId }) => {
     <div className="summary">
       <div className="summary-header">
         <h3 className="summary-title">SUMMARY</h3>
-        {projectId && (
-          <div className="project-indicator">
-            Project {String.fromCharCode(64 + projectId)}
-          </div>
+        {projectName && (
+          <div className="project-indicator">{projectName}</div>
         )}
       </div>
       
@@ -251,25 +286,9 @@ const Summary = ({ tasks, columns, projectId }) => {
           <DonutChart data={stats.statusDistribution} />
         </div>
 
-        {/* Project Members */}
-        {projectMembers.length > 0 && (
-          <div className="project-members-section">
-            <h4 className="section-title">Project Members</h4>
-            <div className="project-members-list">
-              {projectMembers.map((member) => (
-                <div key={member.id} className="member-item">
-                  <div className="member-avatar">{member.avatar || '👤'}</div>
-                  <div className="member-info">
-                    <div className="member-name">{member.name}</div>
-                    <div className="member-email">{member.email}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Project Members moved to Sidebar */}
 
-        {/* Workload Chart */}
+        {/* WORKLOAD (rename from TEAM WORKLOAD) - fixed visible even if empty */}
         <WorkloadChart data={workloadData} />
       </div>
     </div>

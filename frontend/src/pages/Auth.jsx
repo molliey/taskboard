@@ -17,6 +17,7 @@ const Auth = ({ onAuthSuccess }) => {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Developer');
 
+  // 通过按钮切换 login/register
   const switchMode = (nextMode) => {
     setMode(nextMode);
     setError('');
@@ -50,17 +51,10 @@ const Auth = ({ onAuthSuccess }) => {
     setError('');
     try {
       await userAPI.register({ name, email, password, role });
-      // Auto login after successful registration
-      const res = await userAPI.login({ email, password });
-      if (!res?.success) {
-        setError(res?.error || 'Login failed after registration');
-        return;
-      }
-      if (res?.user) {
-        authService.login(res.user);
-      }
-      onAuthSuccess?.();
-      window.dispatchEvent(new Event('auth:changed'));
+      // 注册成功后切换到登录页面（不自动登录），并预填邮箱
+      setMode('login');
+      setLoginEmail(email);
+      setLoginPassword('');
     } catch (err) {
       setError(err?.message || 'Registration failed');
     } finally {
@@ -71,47 +65,55 @@ const Auth = ({ onAuthSuccess }) => {
   return (
     <div className="auth-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <div className="auth-card" style={{ width: 360, padding: 24, border: '1px solid #eee', borderRadius: 12, background: '#fff' }}>
-        <div style={{ display: 'flex', marginBottom: 16 }}>
-          <button onClick={() => switchMode('login')} style={{ flex: 1, padding: 8, fontWeight: mode === 'login' ? 700 : 400 }}>Login</button>
-          <button onClick={() => switchMode('register')} style={{ flex: 1, padding: 8, fontWeight: mode === 'register' ? 700 : 400 }}>Register</button>
-        </div>
-
         {error && (
           <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>
         )}
 
-        {mode === 'login' ? (
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: 12 }}>
-              <label>Email</label>
-              <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label>Password</label>
-              <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
-            </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: 10 }}>{loading ? 'Logging in...' : 'Login'}</button>
-          </form>
-        ) : (
-          <form onSubmit={handleRegister}>
-            <div style={{ marginBottom: 12 }}>
-              <label>Name</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label>Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label>Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label>Role</label>
-              <input type="text" value={role} onChange={(e) => setRole(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
-            </div>
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: 10 }}>{loading ? 'Registering...' : 'Register & Login'}</button>
-          </form>
+        {mode === 'login' && (
+          <>
+            {/* Login 表单 */}
+            <form onSubmit={handleLogin} style={{ marginBottom: 12 }}>
+              <div style={{ marginBottom: 12 }}>
+                <label>Email</label>
+                <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label>Password</label>
+                <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              </div>
+              <button type="submit" disabled={loading} style={{ width: '100%', padding: 10 }}>
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
+            {/* Register 蓝色模块（点击切换到注册表单） */}
+            <button type="button" disabled={loading} onClick={() => switchMode('register')} style={{ width: '100%', padding: 10 }}>
+              Register
+            </button>
+          </>
+        )}
+
+        {mode === 'register' && (
+          <>
+            {/* Register 表单：仅 Name/Email/Password，Role 使用默认值 */}
+            <form onSubmit={handleRegister} style={{ marginBottom: 12 }}>
+              <div style={{ marginBottom: 12 }}>
+                <label>Name</label>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label>Email</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label>Password</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              </div>
+              {/* 隐藏 role 输入，使用默认 Developer */}
+              <button type="submit" disabled={loading} style={{ width: '100%', padding: 10 }}>
+                {loading ? 'Registering...' : 'Register'}
+              </button>
+            </form>
+          </>
         )}
       </div>
     </div>

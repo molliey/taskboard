@@ -137,6 +137,23 @@ const Board = ({ projectId = 1, onDataChange }) => {
 
   // Update task fields (title/description/due_date/assignee_id)
   const handleUpdateTask = async (taskId, columnTitle, updates) => {
+    // 先乐观更新，立即体现所选 assignee
+    setColumns((prev) => ({
+      ...prev,
+      [columnTitle]: (prev[columnTitle] || []).map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              ...updates,
+              assignee_id:
+                updates?.assignee_id != null && updates?.assignee_id !== ''
+                  ? parseInt(updates.assignee_id, 10)
+                  : t.assignee_id,
+            }
+          : t
+      ),
+    }));
+
     try {
       const updated = await projectAPI.updateTask(projectId, taskId, updates);
       setColumns((prev) => ({
@@ -150,16 +167,14 @@ const Board = ({ projectId = 1, onDataChange }) => {
                   updated?.assignee_id != null && updated?.assignee_id !== ''
                     ? parseInt(updated.assignee_id, 10)
                     : t.assignee_id,
-                // 可选：将后端返回的成员信息扩展到任务（若后端未来支持）
-                assignee_name: updated?.assignee_name ?? t.assignee_name,
-                assignee_email: updated?.assignee_email ?? t.assignee_email,
-                assignee_avatar: updated?.assignee_avatar ?? t.assignee_avatar,
               }
             : t
         ),
       }));
     } catch (e) {
       console.error('Update task failed', e);
+      // 后端失败时可选：刷新一次看板，保持一致
+      try { await reloadBoard(projectId); } catch (_) {}
     }
   };
 
