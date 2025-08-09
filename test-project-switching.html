@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>项目切换测试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f0f0f0;
+        }
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .project-button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #e8f5e8;
+            color: #2d5a2d;
+        }
+        .project-button.active {
+            background-color: #36b37e;
+            color: white;
+        }
+        .data-display {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .column {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        .task {
+            margin: 5px 0;
+            padding: 8px;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #e1e8ed;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>项目切换测试</h1>
+        
+        <div>
+            <button id="project1" class="project-button active" onclick="switchProject(1)">Project A</button>
+            <button id="project2" class="project-button" onclick="switchProject(2)">Project B</button>
+            <button id="project3" class="project-button" onclick="switchProject(3)">Project C</button>
+        </div>
+        
+        <div class="data-display">
+            <h3>当前项目数据: <span id="currentProject">Project A</span></h3>
+            <div id="projectData"></div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟项目数据服务
+        const projectsData = new Map();
+        
+        // 初始化项目数据
+        projectsData.set(1, {
+            "TO DO": [
+                { id: "PA-1", title: "Project A - User Authentication System", tag: "AUTHENTICATION" },
+                { id: "PA-2", title: "Project A - Database Schema Design", tag: "DATABASE" }
+            ],
+            "IN PROGRESS": [
+                { id: "PA-3", title: "Project A - API Development", tag: "BACKEND" }
+            ],
+            "IN REVIEW": [],
+            "DONE": [
+                { id: "PA-4", title: "Project A - Project Setup", tag: "SETUP" }
+            ]
+        });
+
+        projectsData.set(2, {
+            "TO DO": [
+                { id: "PB-1", title: "Project B - E-commerce Frontend", tag: "FRONTEND" },
+                { id: "PB-2", title: "Project B - Payment Integration", tag: "PAYMENT" }
+            ],
+            "IN PROGRESS": [
+                { id: "PB-3", title: "Project B - Product Management", tag: "BACKEND" }
+            ],
+            "IN REVIEW": [
+                { id: "PB-4", title: "Project B - User Reviews System", tag: "FEATURE" }
+            ],
+            "DONE": []
+        });
+
+        projectsData.set(3, {
+            "TO DO": [
+                { id: "PC-1", title: "Project C - Mobile App Design", tag: "DESIGN" }
+            ],
+            "IN PROGRESS": [
+                { id: "PC-2", title: "Project C - React Native Setup", tag: "MOBILE" },
+                { id: "PC-3", title: "Project C - API Integration", tag: "INTEGRATION" }
+            ],
+            "IN REVIEW": [],
+            "DONE": [
+                { id: "PC-4", title: "Project C - Market Research", tag: "RESEARCH" }
+            ]
+        });
+
+        let currentProjectId = 1;
+
+        function switchProject(projectId) {
+            currentProjectId = projectId;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.project-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`project${projectId}`).classList.add('active');
+            
+            // 更新项目标题
+            const projectNames = { 1: 'Project A', 2: 'Project B', 3: 'Project C' };
+            document.getElementById('currentProject').textContent = projectNames[projectId];
+            
+            // 更新项目数据显示
+            displayProjectData(projectId);
+            
+            console.log(`Switched to project ${projectId}`);
+        }
+
+        function displayProjectData(projectId) {
+            const data = projectsData.get(projectId);
+            const dataContainer = document.getElementById('projectData');
+            
+            let html = '';
+            Object.entries(data).forEach(([columnName, tasks]) => {
+                html += `<div class="column">`;
+                html += `<h4>${columnName} (${tasks.length})</h4>`;
+                
+                tasks.forEach(task => {
+                    html += `<div class="task">`;
+                    html += `<strong>${task.id}</strong>: ${task.title}`;
+                    html += `<br><span style="color: #666;">${task.tag}</span>`;
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+            });
+            
+            dataContainer.innerHTML = html;
+        }
+
+        // 初始化显示
+        displayProjectData(1);
+    </script>
+</body>
+</html>
