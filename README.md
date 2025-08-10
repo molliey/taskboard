@@ -126,13 +126,8 @@ python test_api_flow.py --base-url http://localhost:8000 --verbose
 ## 🎥 Demo Videos
 
 ### Platform Overview
-<video controls>
-  <source src="/Users/len/Desktop/1.mov" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+https://vimeo.com/1108773021?share=copy
 
 ### Real-time Collaboration
-<video controls>
-  <source src="/Users/len/Desktop/2.mov" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+https://vimeo.com/1108772829?share=copy
+
