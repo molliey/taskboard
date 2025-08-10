@@ -184,7 +184,10 @@ const Sidebar = ({ currentProjectId, onProjectSelect }) => {
         <AddMemberModal 
           project={currentProject}
           onClose={() => setShowAddMember(false)}
-          onMemberAdded={() => setShowAddMember(false)}
+          onMemberAdded={() => {
+            loadMembers(currentProjectId);
+            setShowAddMember(false);
+          }}
         />
       )}
     </div>
