@@ -124,29 +124,30 @@ class APITester:
         """Test user registration flow"""
         self.log("\n👤 Testing User Registration...")
         
-        # Test data for multiple users
+        # Test data for multiple users - using timestamp to ensure uniqueness
+        timestamp = int(time.time())
         test_users_data = [
             {
                 "name": "Alice Johnson",
-                "email": "alice.johnson@company.com",
+                "email": f"test.alice.johnson.{timestamp}@testdomain.com",
                 "password": "password123",
                 "role": "Frontend Developer"
             },
             {
                 "name": "Bob Smith",
-                "email": "bob.smith@company.com",
+                "email": f"test.bob.smith.{timestamp}@testdomain.com",
                 "password": "password123",
                 "role": "Backend Developer"
             },
             {
                 "name": "Charlie Wilson",
-                "email": "charlie.wilson@company.com",
+                "email": f"test.charlie.wilson.{timestamp}@testdomain.com",
                 "password": "password123",
                 "role": "UI/UX Designer"
             },
             {
                 "name": "Diana Chen",
-                "email": "diana.chen@company.com",
+                "email": f"test.diana.chen.{timestamp}@testdomain.com",
                 "password": "password123",
                 "role": "Product Manager"
             }

@@ -9,7 +9,7 @@ This document describes how the test script simulates real user operation flows 
 ```
 docker run --name taskboard-redis -p 6379:6379 redis:7
 ```
-**Every time you run this test, you need to restart the Redis server to reset data. If already started and you want to stop and restart, open another terminal and run `docker stop taskboard` and `docker rm taskboard`**
+**Note: The test script now uses unique timestamps in test user emails, so it can be run multiple times without conflicts. Restarting Redis is optional unless you want to completely clean the test data.**
 
 - Step 2: Start backend, open a separate terminal
 
@@ -223,11 +223,11 @@ Our test script simulates a complete Task Board application usage scenario, from
 **Test Goal:** Verify user registration functionality works properly
 
 **Operation Steps:**
-- Create 4 test users:
-  - Alice Johnson (Frontend Developer)
-  - Bob Smith (Backend Developer) 
-  - Charlie Wilson (UI/UX Designer)
-  - Diana Chen (Product Manager)
+- Create 4 test users with unique timestamped emails:
+  - Alice Johnson (Frontend Developer) - test.alice.johnson.{timestamp}@testdomain.com
+  - Bob Smith (Backend Developer) - test.bob.smith.{timestamp}@testdomain.com
+  - Charlie Wilson (UI/UX Designer) - test.charlie.wilson.{timestamp}@testdomain.com
+  - Diana Chen (Product Manager) - test.diana.chen.{timestamp}@testdomain.com
 
 **Expected Results:**
 - Each user should successfully register
@@ -378,10 +378,10 @@ Our test script simulates a complete Task Board application usage scenario, from
 ## Test Data Summary
 
 ### Created Users
-- Alice Johnson (Frontend Developer) - Main test user
-- Bob Smith (Backend Developer) - Project member
-- Charlie Wilson (UI/UX Designer) - Project member
-- Diana Chen (Product Manager) - Backup user
+- Alice Johnson (Frontend Developer) - Main test user - test.alice.johnson.{timestamp}@testdomain.com
+- Bob Smith (Backend Developer) - Project member - test.bob.smith.{timestamp}@testdomain.com
+- Charlie Wilson (UI/UX Designer) - Project member - test.charlie.wilson.{timestamp}@testdomain.com
+- Diana Chen (Product Manager) - Backup user - test.diana.chen.{timestamp}@testdomain.com
 
 ### Created Projects
 - Web Application Development - Main test project
