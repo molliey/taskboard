@@ -2,6 +2,8 @@
 
 A modern task management platform with real-time collaboration, built with FastAPI and React.
 
+![TaskBoard Screenshot](/Users/len/Desktop/0.png)
+5
 ## ✨ Features
 
 - **Real-time Collaboration**: Live updates via WebSocket
@@ -120,3 +122,17 @@ python test_api_flow.py --base-url http://localhost:8000 --verbose
 - Set up SSL/TLS certificates
 - Use process managers (PM2, supervisor)
 - Configure reverse proxy (Nginx)
+
+## 🎥 Demo Videos
+
+### Platform Overview
+<video controls>
+  <source src="/Users/len/Desktop/1.mov" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+### Real-time Collaboration
+<video controls>
+  <source src="/Users/len/Desktop/2.mov" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
