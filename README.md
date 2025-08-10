@@ -2,8 +2,8 @@
 
 A modern task management platform with real-time collaboration, built with FastAPI and React.
 
-![TaskBoard Screenshot](/Users/len/Desktop/0.png)
-5
+<img width="1911" height="1072" alt="Image" src="https://github.com/user-attachments/assets/03e2a1bb-0e4d-4dc5-87dd-595b13947022" />
+
 ## ✨ Features
 
 - **Real-time Collaboration**: Live updates via WebSocket
