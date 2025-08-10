@@ -60,7 +60,9 @@ const AddTaskModal = ({ onClose, onSubmit, projectId }) => {
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             className="border rounded px-3 py-2 w-full"
-            placeholder="Select due date"
+            placeholder="Select due date (optional)"
+            min="2025-01-01"
+            max="2025-12-31"
           />
 
           <select
@@ -68,10 +70,10 @@ const AddTaskModal = ({ onClose, onSubmit, projectId }) => {
             onChange={(e) => setAssignedTo(e.target.value)}
             className="border rounded px-3 py-2 w-full"
           >
-            <option value="">Select Assignee (optional)</option>
+            <option value="">👤 Unassigned</option>
             {projectMembers.map((member) => (
               <option key={member.id} value={member.id}>
-                {member.avatar} {member.name}
+                {member.avatar || '👤'} {member.name} ({member.email})
               </option>
             ))}
           </select>

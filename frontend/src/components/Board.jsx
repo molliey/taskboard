@@ -145,10 +145,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
           ? {
               ...t,
               ...updates,
-              assignee_id:
-                updates?.assignee_id != null && updates?.assignee_id !== ''
-                  ? parseInt(updates.assignee_id, 10)
-                  : t.assignee_id,
+              assignee_id: updates?.assignee_id !== undefined ? parseInt(updates.assignee_id, 10) : t.assignee_id,
             }
           : t
       ),

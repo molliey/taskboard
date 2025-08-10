@@ -3,7 +3,6 @@ import { projectAPI } from '../../api/taskboard';
 
 const AddMemberModal = ({ project, onClose, onMemberAdded }) => {
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('Developer');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

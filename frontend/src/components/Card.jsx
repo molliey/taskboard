@@ -11,10 +11,11 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
     title: task.title || '',
     description: task.description || '',
     due_date: task.due_date || '',
-    assignee_id: task.assignee_id ?? 0,
+    assignee_id: parseInt(task.assignee_id, 10) || 0,
   });
   const [showInlineDatePicker, setShowInlineDatePicker] = useState(false);
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+  const [justUpdated, setJustUpdated] = useState(false);
   const menuRef = useRef(null);
   const assigneeRef = useRef(null);
   const cardRef = useRef(null);
@@ -44,21 +45,32 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
   // Auto-save on clicking outside the card while editing
   useEffect(() => {
     if (!isEditing) return;
-    const handleOutsideForEdit = (event) => {
-      if (cardRef.current && !cardRef.current.contains(event.target)) {
-        if (editTask.title && editTask.title.trim()) {
-          handleSaveEdit();
-        } else {
-          // Revert if title is empty
-          handleCancelEdit();
-        }
+      const handleOutsideForEdit = (event) => {
+    if (cardRef.current && !cardRef.current.contains(event.target)) {
+      if (editTask.title && editTask.title.trim()) {
+        // 直接保存并退出编辑模式，不调用handleSaveEdit
+        const updates = {
+          title: editTask.title.trim(),
+          description: (editTask.description ?? '').toString(),
+          due_date: (editTask.due_date ?? '').toString(),
+          assignee_id: Number.isNaN(parseInt(editTask.assignee_id, 10)) ? 0 : parseInt(editTask.assignee_id, 10),
+        };
+        console.log('Saving updates:', updates);
+        console.log('Current editTask.assignee_id:', editTask.assignee_id);
+        console.log('Parsed assignee_id:', updates.assignee_id);
+        onUpdate?.(updates);
+        setIsEditing(false);
+      } else {
+        // Revert if title is empty
+        handleCancelEdit();
       }
-    };
+    }
+  };
     document.addEventListener('mousedown', handleOutsideForEdit);
     return () => {
       document.removeEventListener('mousedown', handleOutsideForEdit);
     };
-  }, [isEditing, editTask.title]);
+  }, [isEditing, editTask]);
 
   const handleDelete = async (e) => {
     e.stopPropagation();
@@ -124,12 +136,23 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
 
   // Helper: get member info from backend-loaded members
   const getMemberById = (id) => {
+    // 如果id是0或null/undefined，返回null表示Unassigned
+    if (!id || id === 0 || id === '0') {
+      return null;
+    }
+    
     const list = Array.isArray(window.__projectMembers) ? window.__projectMembers : [];
-    return list.find((m) => parseInt(m.id, 10) === parseInt(id, 10));
+    const member = list.find((m) => parseInt(m.id, 10) === parseInt(id, 10));
+    return member;
   };
 
   const handleEditInputChange = (field, value) => {
-    setEditTask(prev => ({ ...prev, [field]: value }));
+    console.log(`handleEditInputChange: ${field} = ${value}`);
+    setEditTask(prev => {
+      const newState = { ...prev, [field]: value };
+      console.log('New editTask state:', newState);
+      return newState;
+    });
   };
 
   const handleStartEdit = () => {
@@ -140,7 +163,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       title: task.title || '',
       description: task.description || '',
       due_date: task.due_date || '',
-      assignee_id: task.assignee_id ?? 0,
+      assignee_id: parseInt(task.assignee_id, 10) || 0,
     });
   };
 
@@ -150,7 +173,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       title: task.title || '',
       description: task.description || '',
       due_date: task.due_date || '',
-      assignee_id: task.assignee_id ?? 0,
+      assignee_id: parseInt(task.assignee_id, 10) || 0,
     });
   };
 
@@ -179,7 +202,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       title: task.title || '',
       description: task.description || '',
       due_date: task.due_date || '',
-      assignee_id: task.assignee_id ?? 0,
+      assignee_id: parseInt(task.assignee_id, 10) || 0,
     });
   }, [task.title, task.description, task.due_date, task.assignee_id, isEditing]);
 
@@ -191,50 +214,76 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       onDragEnd={handleDragEnd}
       ref={cardRef}
     >
-      <div className="card-content" onClick={() => !isEditing && handleStartEdit()}>
-        {!isEditing && <div className="card-title">{task.title}</div>}
+      <div className="card-content">
+        {!isEditing && (
+          <div 
+            className="card-title" 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isEditing && !justUpdated) {
+                handleStartEdit();
+                // 延迟聚焦到title输入框
+                setTimeout(() => {
+                  const titleInput = document.querySelector('.task-input-title');
+                  if (titleInput) titleInput.focus();
+                }, 100);
+              }
+            }}
+          >
+            {task.title}
+          </div>
+        )}
         {isEditing && (
           <div className="inline-task-form">
             <input
               type="text"
               value={editTask.title}
               onChange={(e) => handleEditInputChange('title', e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleOutsideForEdit(e);
+                }
+              }}
               className="task-input-title"
               autoFocus
             />
             <textarea
               value={editTask.description}
               onChange={(e) => handleEditInputChange('description', e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleOutsideForEdit(e);
+                }
+              }}
               className="task-input-description"
               rows={2}
             />
             <div className="task-input-row">
-              <input
-                type="date"
-                value={editTask.due_date}
-                onChange={(e) => handleEditInputChange('due_date', e.target.value)}
-                className="task-input-date"
-                min="2025-01-01"
-                max="2025-12-31"
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="date"
+                  value={editTask.due_date}
+                  onChange={(e) => {
+                    const nextDate = e.target.value;
+                    handleEditInputChange('due_date', nextDate);
+                  }}
+                  className="task-input-date"
+                  min="2025-01-01"
+                  max="2025-12-31"
+                />
+              </div>
             </div>
             <div className="task-assignee-row">
               <div className="assignee-selection">
-                <span className="assignee-label">Assignee:</span>
                 <div className="assignee-options">
                   <button
                     type="button"
-                    className={`assignee-option ${!editTask.assignee_id ? 'selected' : ''}`}
+                    className={`assignee-option ${parseInt(editTask.assignee_id, 10) === 0 ? 'selected' : ''}`}
                     onClick={() => {
+                      console.log('Clicking Unassigned, current editTask.assignee_id:', editTask.assignee_id);
                       handleEditInputChange('assignee_id', 0);
-                      const next = { ...editTask, assignee_id: 0 };
-                      const updates = {
-                        title: (next.title || '').trim(),
-                        description: (next.description ?? '').toString(),
-                        due_date: (next.due_date ?? '').toString(),
-                        assignee_id: 0,
-                      };
-                      onUpdate?.(updates);
                     }}
                   >
                     <span className="default-avatar">👤</span>
@@ -244,19 +293,10 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                     <button
                       key={member.id}
                       type="button"
-                      className={`assignee-option ${parseInt(editTask.assignee_id, 10) === member.id ? 'selected' : ''}`}
+                      className={`assignee-option ${parseInt(editTask.assignee_id, 10) === parseInt(member.id, 10) ? 'selected' : ''}`}
                        onClick={() => {
-                         handleEditInputChange('assignee_id', member.id);
-                         // 选择后立即保存（Jira风格更少操作）
-                         const next = { ...editTask, assignee_id: member.id };
-                         const parsedAssignee = parseInt(next.assignee_id, 10);
-                         const updates = {
-                           title: (next.title || '').trim(),
-                           description: (next.description ?? '').toString(),
-                           due_date: (next.due_date ?? '').toString(),
-                           assignee_id: Number.isNaN(parsedAssignee) ? 0 : parsedAssignee,
-                         };
-                         onUpdate?.(updates);
+                         console.log(`Clicking member ${member.name} (id: ${member.id}), current editTask.assignee_id:`, editTask.assignee_id);
+                         handleEditInputChange('assignee_id', parseInt(member.id, 10));
                        }}
                     >
                       <span className="member-avatar">{member.avatar || '👤'}</span>
@@ -264,13 +304,35 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                     </button>
                   ))}
                 </div>
+
               </div>
             </div>
           </div>
         )}
         
         {!isEditing && task.description && (
-          <div className="card-description">{task.description}</div>
+          <div 
+            className="card-description"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isEditing && !justUpdated) {
+                handleStartEdit();
+                // 延迟聚焦到description输入框
+                setTimeout(() => {
+                  const descInput = document.querySelector('.task-input-description');
+                  if (descInput) descInput.focus();
+                }, 100);
+              }
+            }}
+          >
+            {task.description}
+          </div>
+        )}
+        
+        
+        {/* Spacer line */}
+        {!isEditing && task.description && (
+          <div style={{ height: '8px' }}></div>
         )}
         
         {/* Task metadata */}
@@ -279,17 +341,29 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
             <div ref={dateRef} style={{ position: 'relative' }}>
               <div 
                 className="card-due-date"
-                onClick={(e) => { e.stopPropagation(); setShowInlineDatePicker(true); }}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  // 直接显示日期选择器
+                  setShowInlineDatePicker(true);
+                  // 立即聚焦到日期输入框
+                  setTimeout(() => {
+                    const dateInput = document.querySelector('.inline-date-picker');
+                    if (dateInput) {
+                      dateInput.focus();
+                      dateInput.showPicker?.(); // 直接打开日历选择器
+                    }
+                  }, 10);
+                }}
               >
-                📅 {formatDate(task.due_date)}
+                {formatDate(task.due_date)}
               </div>
               {showInlineDatePicker && (
                 <input
                   type="date"
-                  value={editTask.due_date}
+                  value={task.due_date || ''}
                   onChange={async (e) => {
                     const nextDate = e.target.value;
-                    setEditTask(prev => ({ ...prev, due_date: nextDate }));
+                    // 直接更新，不需要先设置editTask
                     await onUpdate?.({
                       title: (task.title || '').trim(),
                       description: (task.description ?? '').toString(),
@@ -297,8 +371,11 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                       assignee_id: Number.isNaN(parseInt(task.assignee_id, 10)) ? 0 : parseInt(task.assignee_id, 10),
                     });
                     setShowInlineDatePicker(false);
+                    // 标记刚刚更新，防止进入编辑模式
+                    setJustUpdated(true);
+                    setTimeout(() => setJustUpdated(false), 100);
                   }}
-                  className="task-input-date"
+                  className="task-input-date inline-date-picker"
                   min="2025-01-01"
                   max="2025-12-31"
                   style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1001 }}
@@ -314,13 +391,17 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
             >
               <div 
                 className={`card-assignee ${task.assignee_id ? 'clickable assigned' : 'unassigned'}`}
-                onClick={(e) => { e.stopPropagation(); setShowAssigneeDropdown((v) => !v); setShowAssigneeInfo(false); }}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setShowAssigneeDropdown((v) => !v); 
+                  setShowAssigneeInfo(false); 
+                }}
               >
                 {(() => {
                   const m = getMemberById(task.assignee_id);
+                  console.log('Local assignee display - task.assignee_id:', task.assignee_id, 'getMemberById result:', m);
                   return (
                     <>
-                      <span className="assignee-avatar">{m?.avatar || '👤'}</span>
                       <span className="assignee-name">{m?.name || 'Unassigned'}</span>
                     </>
                   );
@@ -332,7 +413,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                   <div className="assignee-options" style={{ padding: 4 }}>
                     <button
                       type="button"
-                      className={`assignee-option ${!task.assignee_id ? 'selected' : ''}`}
+                      className={`assignee-option ${!task.assignee_id || parseInt(task.assignee_id, 10) === 0 ? 'selected' : ''}`}
                       onClick={async () => {
                         await onUpdate?.({
                           title: (task.title || '').trim(),
@@ -341,6 +422,8 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                           assignee_id: 0,
                         });
                         setShowAssigneeDropdown(false);
+                        setJustUpdated(true);
+                        setTimeout(() => setJustUpdated(false), 100);
                       }}
                     >
                       <span className="default-avatar">👤</span>
@@ -350,15 +433,17 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                       <button
                         key={member.id}
                         type="button"
-                        className={`assignee-option ${parseInt(task.assignee_id, 10) === member.id ? 'selected' : ''}`}
+                        className={`assignee-option ${parseInt(task.assignee_id, 10) === parseInt(member.id, 10) ? 'selected' : ''}`}
                         onClick={async () => {
                           await onUpdate?.({
                             title: (task.title || '').trim(),
                             description: (task.description ?? '').toString(),
                             due_date: (task.due_date ?? '').toString(),
-                            assignee_id: member.id,
+                            assignee_id: parseInt(member.id, 10),
                           });
                           setShowAssigneeDropdown(false);
+                          setJustUpdated(true);
+                          setTimeout(() => setJustUpdated(false), 100);
                         }}
                       >
                         <span className="member-avatar">{member.avatar || '👤'}</span>
@@ -391,8 +476,25 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       {/* Dropdown menu */}
       {showMenu && (
         <div className="card-menu" ref={menuRef}>
+          <button 
+            className="menu-item edit" 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleStartEdit();
+              setShowMenu(false);
+              setTimeout(() => {
+                const titleInput = document.querySelector('.task-input-title');
+                if (titleInput) titleInput.focus();
+              }, 100);
+            }}
+            disabled={isLoading}
+          >
+            ✏️ Edit Task
+          </button>
+          
           {moveOptions.length > 0 && (
             <>
+              <div className="menu-divider"></div>
               <div className="menu-section-title">MOVE TO</div>
               {moveOptions.map(column => (
                 <button

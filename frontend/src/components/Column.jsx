@@ -89,6 +89,10 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onUpdateTa
       tag: 'GENERAL' // 使用默认tag值
     };
 
+    console.log('Creating task with data:', taskToCreate);
+    console.log('Original newTask.description:', newTask.description);
+    console.log('Trimmed description:', newTask.description.trim());
+
     if (onAddClick) {
       onAddClick(taskToCreate);
     }
@@ -97,10 +101,12 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onUpdateTa
   };
 
   const handleInputChange = (field, value) => {
-    setNewTask(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log(`handleInputChange: ${field} = "${value}" (type: ${typeof value})`);
+    setNewTask(prev => {
+      const newState = { ...prev, [field]: value };
+      console.log(`New newTask state:`, newState);
+      return newState;
+    });
   };
 
   const handleDragOver = (e) => {
