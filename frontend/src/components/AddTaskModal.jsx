@@ -7,7 +7,7 @@ const AddTaskModal = ({ onClose, onSubmit, projectId }) => {
   const [dueDate, setDueDate] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   
-  // 从后端加载项目成员作为可选的 assignee（替换本地 mock）
+  // Load project members from backend as assignee options (replace local mock)
   const [projectMembers, setProjectMembers] = useState([]);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const AddTaskModal = ({ onClose, onSubmit, projectId }) => {
         description: description.trim() || null,
         due_date: dueDate || null,
         assignee_id: assignedTo ? parseInt(assignedTo) : null,
-        position: 0, // 默认位置
+        position: 0, // Default position
       });
       onClose();
     }

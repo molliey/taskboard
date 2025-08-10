@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-// 移除本地 mock 用户来源，显示逻辑改为后端返回的 name
+// Remove local mock users, display logic uses backend-returned name
 
 const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColumn }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -48,7 +48,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       const handleOutsideForEdit = (event) => {
     if (cardRef.current && !cardRef.current.contains(event.target)) {
       if (editTask.title && editTask.title.trim()) {
-        // 直接保存并退出编辑模式，不调用handleSaveEdit
+        // Save directly and exit edit mode, don't call handleSaveEdit
         const updates = {
           title: editTask.title.trim(),
           description: (editTask.description ?? '').toString(),
@@ -128,7 +128,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return null;
-    // 直接显示选择的日期，不进行复杂格式化
+    // Display selected date directly without complex formatting
     return dateString;
   };
 
@@ -136,7 +136,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
 
   // Helper: get member info from backend-loaded members
   const getMemberById = (id) => {
-    // 如果id是0或null/undefined，返回null表示Unassigned
+    // If id is 0 or null/undefined, return null for Unassigned
     if (!id || id === 0 || id === '0') {
       return null;
     }
@@ -158,7 +158,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
   const handleStartEdit = () => {
     setIsEditing(true);
     setShowMenu(false);
-    // 进入编辑时，用最新任务数据初始化编辑表单，确保 assignee 等保持一致
+    // Initialize edit form with latest task data on edit, ensure assignee consistency
     setEditTask({
       title: task.title || '',
       description: task.description || '',
@@ -195,7 +195,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
     }
   };
 
-  // 当任务数据变化时（且未在编辑中），同步编辑表单的初始值，确保再次编辑时是最新值
+  // Sync edit form initial values when task data changes (not in edit mode)
   useEffect(() => {
     if (isEditing) return;
     setEditTask({
@@ -222,7 +222,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
               e.stopPropagation();
               if (!isEditing && !justUpdated) {
                 handleStartEdit();
-                // 延迟聚焦到title输入框
+                // Delayed focus to title input
                 setTimeout(() => {
                   const titleInput = document.querySelector('.task-input-title');
                   if (titleInput) titleInput.focus();
@@ -317,7 +317,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
               e.stopPropagation();
               if (!isEditing && !justUpdated) {
                 handleStartEdit();
-                // 延迟聚焦到description输入框
+                // Delayed focus to description input
                 setTimeout(() => {
                   const descInput = document.querySelector('.task-input-description');
                   if (descInput) descInput.focus();
@@ -343,14 +343,14 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                 className="card-due-date"
                 onClick={(e) => { 
                   e.stopPropagation(); 
-                  // 直接显示日期选择器
+                  // Show date picker directly
                   setShowInlineDatePicker(true);
-                  // 立即聚焦到日期输入框
+                  // Focus to date input immediately
                   setTimeout(() => {
                     const dateInput = document.querySelector('.inline-date-picker');
                     if (dateInput) {
                       dateInput.focus();
-                      dateInput.showPicker?.(); // 直接打开日历选择器
+                      dateInput.showPicker?.(); // Open calendar picker directly
                     }
                   }, 10);
                 }}
@@ -363,7 +363,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                   value={task.due_date || ''}
                   onChange={async (e) => {
                     const nextDate = e.target.value;
-                    // 直接更新，不需要先设置editTask
+                    // Update directly without setting editTask first
                     await onUpdate?.({
                       title: (task.title || '').trim(),
                       description: (task.description ?? '').toString(),
@@ -371,7 +371,7 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
                       assignee_id: Number.isNaN(parseInt(task.assignee_id, 10)) ? 0 : parseInt(task.assignee_id, 10),
                     });
                     setShowInlineDatePicker(false);
-                    // 标记刚刚更新，防止进入编辑模式
+                    // Mark as just updated to prevent entering edit mode
                     setJustUpdated(true);
                     setTimeout(() => setJustUpdated(false), 100);
                   }}

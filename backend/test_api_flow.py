@@ -620,9 +620,9 @@ class APITester:
                 raise AssertionError(f"WebSocket did not receive expected event {expected_type}: {e}")
 
     def test_task_created_ws(self):
-        """测试任务创建后 WebSocket 是否收到推送"""
+        """Test if WebSocket receives push after task creation"""
         self.log("\n🧪 Testing WebSocket Task Created Event...")
-        # 先创建任务
+        # Create task first
         project = self.test_projects[0]
         task_data = {
             "title": "WS Test Task",
@@ -632,10 +632,10 @@ class APITester:
             "assignee_id": self.current_user["id"],
             "column_name": "TO DO"
         }
-        # 启动 WebSocket 监听
+        # Start WebSocket listening
         async def ws_and_create():
             ws_task = asyncio.create_task(self.ws_receive_event("task_created"))
-            # 用 requests 创建任务（同步）
+            # Use requests to create task (sync)
             result = self.make_request(
                 "POST",
                 f"/api/projects/{project['id']}/tasks",
@@ -648,7 +648,7 @@ class APITester:
             except Exception as e:
                 self.log(f"❌ WebSocket event not received: {e}")
             return result, ws_event
-        # 运行
+        # Run
         result, ws_event = ws_and_create()
         if result.success and ws_event:
             self.log("✅ WebSocket received task_created event!")

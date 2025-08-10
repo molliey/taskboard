@@ -1,4 +1,4 @@
-// 用户认证服务
+// User authentication service
 class AuthService {
   constructor() {
     this.currentUser = null;

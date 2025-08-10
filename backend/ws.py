@@ -11,7 +11,7 @@ async def websocket_endpoint(websocket: WebSocket):
     active_connections.add(websocket)
     try:
         while True:
-            await websocket.receive_text()  # 保持连接
+            await websocket.receive_text()  # Keep connection alive
     except WebSocketDisconnect:
         active_connections.remove(websocket)
 

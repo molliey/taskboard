@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>用户认证测试</title>
+    <title>User Authentication Test</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -90,21 +90,21 @@
 </head>
 <body>
     <div class="container">
-        <h1>用户认证系统测试</h1>
+        <h1>User Authentication System Test</h1>
         
         <div id="currentUserInfo" class="user-info">
-            <div id="userDisplay">未登录</div>
+            <div id="userDisplay">Not logged in</div>
         </div>
         
         <div id="statusMessage" class="status" style="display: none;"></div>
         
-        <h3>可用用户账户:</h3>
+        <h3>Available User Accounts:</h3>
         <div class="user-list" id="userList"></div>
         
         <div style="margin-top: 20px;">
-            <button class="auth-button logout" onclick="handleLogout()">登出当前用户</button>
-            <button class="auth-button" onclick="testProfileUpdate()">测试更新Profile</button>
-            <button class="auth-button" onclick="testAccountSettings()">测试Account Settings</button>
+            <button class="auth-button logout" onclick="handleLogout()">Logout Current User</button>
+            <button class="auth-button" onclick="testProfileUpdate()">Test Update Profile</button>
+            <button class="auth-button" onclick="testAccountSettings()">Test Account Settings</button>
         </div>
     </div>
 

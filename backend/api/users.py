@@ -29,7 +29,7 @@ def register_user(req: UserRegisterRequest):
         "id": user_id,
         "name": req.name,
         "email": req.email,
-        "password_hash": req.password,  # 实际应加密
+        "password_hash": req.password,  # Should be hashed in production
         "avatar": avatar,
         "role": req.role,
         "is_active": "true",
@@ -55,7 +55,7 @@ def login_user(req: UserLoginRequest):
     r = get_redis()
     user_id = r.get(f"email:{req.email}")
     if not user_id:
-        # 改为返回200 + 结构化错误，便于前端提示
+        # Return 200 with structured error for better frontend handling
         return {"success": False, "error": "User not found"}
     user = r.hgetall(f"user:{user_id}")
     if not user or user.get("password_hash") != req.password:

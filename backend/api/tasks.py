@@ -47,7 +47,7 @@ async def create_task(project_id: int, req: TaskCreateRequest, Authorization: st
     # Column index (list of task ids)
     r.rpush(f"project:{project_id}:column:{req.column_name}:tasks", task_id)
     r.sadd(f"user:{req.assignee_id}:assigned_tasks", task_id)
-    # WebSocket事件推送
+    # Broadcast WebSocket event
     await broadcast_event({"type": "task_created", "payload": task_data})
     return {
         "id": task_id,
@@ -85,18 +85,18 @@ async def update_task(project_id: int, task_id: str, req: TaskUpdateRequest, Aut
         update_data["tag"] = req.tag
     if req.due_date:
         update_data["due_date"] = req.due_date
-    if req.assignee_id:
+    if req.assignee_id is not None:
         update_data["assignee_id"] = req.assignee_id
     update_data["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     r.hset(f"task:{task_id}", mapping=update_data)
-    # 更新board列中的任务
+    # Update task in board column
     col = task["column_name"]
     col_tasks = json.loads(r.hget(f"project:{project_id}:board", col) or "[]")
     for t in col_tasks:
         if t["id"] == task_id:
             t.update(update_data)
     r.hset(f"project:{project_id}:board", col, json.dumps(col_tasks))
-    # WebSocket事件推送
+    # Broadcast WebSocket event
     updated_task = r.hgetall(f"task:{task_id}")
     await broadcast_event({"type": "task_updated", "payload": updated_task})
     return {
@@ -123,12 +123,12 @@ async def move_task(project_id: int, task_id: str, req: MoveTaskRequest, Authori
     r.hset(f"project:{project_id}:board", req.to_column, json.dumps(to_col_tasks))
     # Update task's column_name
     r.hset(f"task:{task_id}", "column_name", req.to_column)
-    # Update column index (修正：用lrange取出、插入、重建)
+    # Update column index (fix: use lrange to get, insert, rebuild)
     col_key = f"project:{project_id}:column:{req.to_column}:tasks"
     task_ids = r.lrange(col_key, 0, -1)
-    # 移除task_id（如果已存在）
+    # Remove task_id if exists
     task_ids = [tid for tid in task_ids if tid != task_id]
-    # 边界检查
+    # Boundary check
     pos = req.position
     if pos < 0 or pos > len(task_ids):
         pos = len(task_ids)
@@ -168,7 +168,7 @@ async def delete_task(project_id: int, task_id: str, Authorization: str = Header
     if "assignee_id" in task:
         r.srem(f"user:{task['assignee_id']}:assigned_tasks", task_id)
     r.delete(f"task:{task_id}")
-    # WebSocket事件推送
+    # Broadcast WebSocket event
     await broadcast_event({
         "type": "task_deleted",
         "payload": {

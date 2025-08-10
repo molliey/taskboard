@@ -25,7 +25,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
     setError("");
     try {
       const data = await projectAPI.getBoard(pid);
-      // 将项目成员提供给全局（仅前端内存，不改后端逻辑）供 Card 编辑器使用
+      // Provide project members globally (frontend memory only) for Card editor
       const members = await projectAPI.getMembers(pid);
       window.__projectMembers = members || [];
       setColumns(normalizeColumns(data || {}));
@@ -99,7 +99,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
         description: (newTask.description ?? "").toString(),
         tag: (newTask.tag && newTask.tag.trim()) ? newTask.tag.trim() : "GENERAL",
         due_date: (newTask.due_date ?? "").toString(),
-        // 统一将 assignee_id 转为整数；未选择则为 0
+        // Convert assignee_id to integer; default to 0 if unselected
         assignee_id: Number.isNaN(assigneeId) ? 0 : assigneeId,
         column_name: columnTitle,
       });
@@ -137,7 +137,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
 
   // Update task fields (title/description/due_date/assignee_id)
   const handleUpdateTask = async (taskId, columnTitle, updates) => {
-    // 先乐观更新，立即体现所选 assignee
+    // Optimistic update first to immediately reflect selected assignee
     setColumns((prev) => ({
       ...prev,
       [columnTitle]: (prev[columnTitle] || []).map((t) =>
@@ -170,7 +170,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
       }));
     } catch (e) {
       console.error('Update task failed', e);
-      // 后端失败时可选：刷新一次看板，保持一致
+      // Optional on backend failure: refresh board once to maintain consistency
       try { await reloadBoard(projectId); } catch (_) {}
     }
   };
