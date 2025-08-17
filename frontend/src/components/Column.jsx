@@ -5,9 +5,11 @@ import { projectAPI } from "../api/taskboard";
 import websocketService from "../services/websocketService";
 // 移除本地 mock 用户，全部从后端加载成员
 
-const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onUpdateTask, availableColumns, currentColumn, projectId }) => {
+const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onReorderTask, onUpdateTask, availableColumns, currentColumn, projectId }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [dragOverPosition, setDragOverPosition] = useState(null);
+  const [showDropIndicator, setShowDropIndicator] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -16,6 +18,25 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onUpdateTa
   });
   const [projectMembers, setProjectMembers] = useState([]);
   const createFormRef = useRef(null);
+  const columnRef = useRef(null);
+
+  // Calculate drop position based on mouse Y coordinate
+  const calculateDropPosition = (mouseY) => {
+    const cardList = columnRef.current?.querySelector('.card-list');
+    if (!cardList) return tasks.length;
+
+    const cards = Array.from(cardList.children);
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      const rect = card.getBoundingClientRect();
+      const cardMiddle = rect.top + rect.height / 2;
+      
+      if (mouseY < cardMiddle) {
+        return i;
+      }
+    }
+    return tasks.length;
+  };
 
   // Load project members and refresh on membership events
   useEffect(() => {
@@ -112,22 +133,49 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onUpdateTa
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragOver(true);
+    
+    // Calculate and show drop position for same-column reordering
+    const taskData = e.dataTransfer.getData('application/json');
+    if (taskData) {
+      try {
+        const { fromColumn } = JSON.parse(taskData);
+        if (fromColumn === currentColumn) {
+          const position = calculateDropPosition(e.clientY);
+          setDragOverPosition(position);
+          setShowDropIndicator(true);
+        }
+      } catch (error) {
+        // Ignore parsing errors during drag over
+      }
+    }
   };
 
   const handleDragLeave = (e) => {
     e.preventDefault();
     setIsDragOver(false);
+    setShowDropIndicator(false);
+    setDragOverPosition(null);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragOver(false);
+    setShowDropIndicator(false);
+    setDragOverPosition(null);
     
     const taskData = e.dataTransfer.getData('application/json');
     if (taskData) {
       try {
-        const { taskId, fromColumn } = JSON.parse(taskData);
-        if (fromColumn !== currentColumn) {
+        const { taskId, fromColumn, fromPosition } = JSON.parse(taskData);
+        
+        if (fromColumn === currentColumn) {
+          // Same column reordering
+          const toPosition = calculateDropPosition(e.clientY);
+          if (fromPosition !== toPosition && onReorderTask) {
+            onReorderTask(taskId, fromColumn, fromPosition, toPosition);
+          }
+        } else {
+          // Cross-column move (existing functionality)
           onMoveTask(taskId, fromColumn, currentColumn);
         }
       } catch (error) {
@@ -138,6 +186,7 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onUpdateTa
 
   return (
     <div 
+      ref={columnRef}
       className={`column ${isDragOver ? 'column-drag-over' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -149,17 +198,26 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onUpdateTa
       </div>
 
       <div className="card-list">
-        {tasks.map((task) => (
-          <Card 
-            key={task.id} 
-            task={task} 
-            onDelete={() => onDeleteTask(task.id, currentColumn)}
-            onUpdate={(updates) => onUpdateTask(task.id, currentColumn, updates)}
-            onMove={(toColumn) => onMoveTask(task.id, currentColumn, toColumn)}
-            availableColumns={availableColumns}
-            currentColumn={currentColumn}
-          />
+        {tasks.map((task, index) => (
+          <React.Fragment key={task.id}>
+            {/* Drop indicator for same-column reordering */}
+            {showDropIndicator && dragOverPosition === index && (
+              <div className="drop-indicator" />
+            )}
+            <Card 
+              task={task} 
+              onDelete={() => onDeleteTask(task.id, currentColumn)}
+              onUpdate={(updates) => onUpdateTask(task.id, currentColumn, updates)}
+              onMove={(toColumn) => onMoveTask(task.id, currentColumn, toColumn)}
+              availableColumns={availableColumns}
+              currentColumn={currentColumn}
+            />
+          </React.Fragment>
         ))}
+        {/* Drop indicator at the end */}
+        {showDropIndicator && dragOverPosition === tasks.length && (
+          <div className="drop-indicator" />
+        )}
       </div>
 
       {/* Inline task creation */}

@@ -188,6 +188,40 @@ const Board = ({ projectId = 1, onDataChange }) => {
     }
   };
 
+  // Reorder task within the same column
+  const handleReorderTask = async (taskId, fromColumn, fromPosition, toPosition) => {
+    try {
+      // Optimistic update first for immediate UI feedback
+      setColumns((prev) => {
+        const tasks = [...(prev[fromColumn] || [])];
+        const taskToMove = tasks[fromPosition];
+        if (!taskToMove) return prev;
+
+        // Remove task from original position
+        tasks.splice(fromPosition, 1);
+        
+        // Insert task at new position
+        tasks.splice(toPosition, 0, taskToMove);
+
+        return {
+          ...prev,
+          [fromColumn]: tasks,
+        };
+      });
+
+      // Call backend API to persist the change
+      await projectAPI.moveTask(projectId, taskId, {
+        from_column: fromColumn,
+        to_column: fromColumn, // Same column
+        position: toPosition,
+      });
+    } catch (e) {
+      console.error("Reorder task failed", e);
+      // Reload board on error to restore correct state
+      try { await reloadBoard(projectId); } catch (_) {}
+    }
+  };
+
   if (loading) {
     return (
       <div className="board-loading">
@@ -214,6 +248,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
           tasks={tasks}
           onAddClick={handleAddTaskInline(title)}
           onMoveTask={handleMoveTask}
+          onReorderTask={handleReorderTask}
           onDeleteTask={handleDeleteTask}
           onUpdateTask={handleUpdateTask}
           availableColumns={Object.keys(columns)}

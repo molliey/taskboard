@@ -1644,3 +1644,18 @@ body {
 .auth-card input { border: 1px solid #ddd; border-radius: 6px; }
 .auth-card button { background: #1e80ff; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 .auth-card button[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+/* Drop indicator for same-column reordering */
+.drop-indicator {
+  height: 2px;
+  background: #007bff;
+  margin: 2px 0;
+  border-radius: 1px;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+}
+
+.drop-indicator.hidden {
+  opacity: 0;
+}

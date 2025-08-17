@@ -3,72 +3,7 @@ class AuthService {
   constructor() {
     this.currentUser = null;
     this.isAuthenticated = false;
-    this.availableUsers = [
-      {
-        id: 1,
-        name: "Alice Johnson",
-        email: "alice.johnson@company.com",
-        avatar: "👩‍💼",
-        role: "Frontend Developer",
-        isActive: true
-      },
-      {
-        id: 2,
-        name: "Bob Smith", 
-        email: "bob.smith@company.com",
-        avatar: "👨‍💻",
-        role: "Backend Developer",
-        isActive: false
-      },
-      {
-        id: 3,
-        name: "Charlie Wilson",
-        email: "charlie.wilson@company.com",
-        avatar: "👨‍🎨", 
-        role: "UI/UX Designer",
-        isActive: false
-      },
-      {
-        id: 4,
-        name: "Diana Chen",
-        email: "diana.chen@company.com",
-        avatar: "👩‍🔬",
-        role: "Product Manager",
-        isActive: false
-      },
-      {
-        id: 5,
-        name: "Erik Anderson",
-        email: "erik.anderson@company.com",
-        avatar: "👨",
-        role: "DevOps Engineer", 
-        isActive: false
-      },
-      {
-        id: 6,
-        name: "Fiona Martinez",
-        email: "fiona.martinez@company.com",
-        avatar: "👩‍💻",
-        role: "Full Stack Developer",
-        isActive: false
-      },
-      {
-        id: 7,
-        name: "George Thompson",
-        email: "george.thompson@company.com",
-        avatar: "👨‍🔧",
-        role: "QA Engineer",
-        isActive: false
-      },
-      {
-        id: 8,
-        name: "Hannah Lee",
-        email: "hannah.lee@company.com",
-        avatar: "👩‍🎨",
-        role: "Graphic Designer",
-        isActive: false
-      }
-    ];
+    // Mock用户数据已删除 - 所有用户数据来自真实后端API
     
     // 移除默认自动登录，改为等待真实登录
   }
@@ -78,10 +13,7 @@ class AuthService {
     this.currentUser = { ...user };
     this.isAuthenticated = true;
     
-    // 更新用户活跃状态
-    this.availableUsers.forEach(u => {
-      u.isActive = u.id === user.id;
-    });
+    // 用户活跃状态通过真实后端API管理
     
     // 保存到localStorage（仅用于显示当前用户信息）
     localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
@@ -97,10 +29,7 @@ class AuthService {
     this.currentUser = null;
     this.isAuthenticated = false;
     
-    // 清除活跃状态
-    this.availableUsers.forEach(u => {
-      u.isActive = false;
-    });
+    // 用户状态通过真实后端API管理
     
     // 清除localStorage
     localStorage.removeItem('currentUser');
@@ -110,15 +39,7 @@ class AuthService {
     this.notifyAuthListeners();
   }
 
-  // 切换用户（不再在UI中使用，保留以兼容老代码）
-  switchAccount(userId) {
-    const newUser = this.availableUsers.find(u => u.id === userId);
-    if (newUser) {
-      this.login(newUser);
-      return true;
-    }
-    return false;
-  }
+  // switchAccount方法已删除 - 不再支持mock用户切换
 
   // 获取当前用户
   getCurrentUser() {
@@ -130,21 +51,14 @@ class AuthService {
     return this.isAuthenticated && this.currentUser !== null;
   }
 
-  // 获取所有可用用户（用于切换账户）
-  getAvailableUsers() {
-    return this.availableUsers.filter(u => !u.isActive);
-  }
+  // getAvailableUsers方法已删除 - 用户数据来自真实API
 
   // 更新用户资料
   updateProfile(updates) {
     if (this.currentUser) {
       this.currentUser = { ...this.currentUser, ...updates };
       
-      // 同步更新availableUsers中的数据
-      const userIndex = this.availableUsers.findIndex(u => u.id === this.currentUser.id);
-      if (userIndex !== -1) {
-        this.availableUsers[userIndex] = { ...this.availableUsers[userIndex], ...updates };
-      }
+      // 用户数据更新通过真实后端API同步
       
       // 更新localStorage
       localStorage.setItem('currentUser', JSON.stringify(this.currentUser));

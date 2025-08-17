@@ -42,22 +42,17 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
     };
   }, []);
 
-  // Auto-save on clicking outside the card while editing
-  useEffect(() => {
-    if (!isEditing) return;
-      const handleOutsideForEdit = (event) => {
+  // Handle outside click to save edits
+  const handleOutsideForEdit = (event) => {
     if (cardRef.current && !cardRef.current.contains(event.target)) {
       if (editTask.title && editTask.title.trim()) {
-        // Save directly and exit edit mode, don't call handleSaveEdit
+        // Save directly and exit edit mode
         const updates = {
           title: editTask.title.trim(),
           description: (editTask.description ?? '').toString(),
           due_date: (editTask.due_date ?? '').toString(),
           assignee_id: Number.isNaN(parseInt(editTask.assignee_id, 10)) ? 0 : parseInt(editTask.assignee_id, 10),
         };
-        console.log('Saving updates:', updates);
-        console.log('Current editTask.assignee_id:', editTask.assignee_id);
-        console.log('Parsed assignee_id:', updates.assignee_id);
         onUpdate?.(updates);
         setIsEditing(false);
       } else {
@@ -66,6 +61,10 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       }
     }
   };
+
+  // Auto-save on clicking outside the card while editing
+  useEffect(() => {
+    if (!isEditing) return;
     document.addEventListener('mousedown', handleOutsideForEdit);
     return () => {
       document.removeEventListener('mousedown', handleOutsideForEdit);
@@ -111,7 +110,9 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
     
     const dragData = {
       taskId: task.id,
-      fromColumn: currentColumn
+      fromColumn: currentColumn,
+      fromPosition: task.position || 0,
+      taskHeight: cardRef.current?.offsetHeight || 80
     };
     
     e.dataTransfer.setData('application/json', JSON.stringify(dragData));
