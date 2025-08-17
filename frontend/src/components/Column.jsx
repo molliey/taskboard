@@ -5,7 +5,7 @@ import { projectAPI } from "../api/taskboard";
 import websocketService from "../services/websocketService";
 // 移除本地 mock 用户，全部从后端加载成员
 
-const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onReorderTask, onUpdateTask, availableColumns, currentColumn, projectId }) => {
+const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onReorderTask, onUpdateTask, availableColumns, currentColumn, projectId, editingTasks }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [dragOverPosition, setDragOverPosition] = useState(null);
@@ -211,6 +211,8 @@ const Column = ({ title, tasks, onAddClick, onDeleteTask, onMoveTask, onReorderT
               onMove={(toColumn) => onMoveTask(task.id, currentColumn, toColumn)}
               availableColumns={availableColumns}
               currentColumn={currentColumn}
+              editingTasks={editingTasks}
+              projectId={projectId}
             />
           </React.Fragment>
         ))}

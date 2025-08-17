@@ -20,6 +20,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
   const [columns, setColumns] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editingTasks, setEditingTasks] = useState(new Map()); // taskId -> { userId, userName }
 
   const reloadBoard = async (pid = projectId) => {
     setError("");
@@ -65,15 +66,81 @@ const Board = ({ projectId = 1, onDataChange }) => {
     const onTaskDeleted = (payload) => {
       if (payload?.project_id === projectId) reloadBoard();
     };
+    const onTaskUpdated = (payload) => {
+      console.log('Received taskUpdated event:', payload);
+      console.log('Current projectId:', projectId);
+      console.log('Payload project_id:', payload?.project_id);
+      
+      if (payload?.project_id === projectId) {
+        console.log('✅ Project ID matches, updating task:', payload.id);
+        // Smart update: only update the specific task without full reload
+        setColumns((prev) => {
+          const updatedColumns = { ...prev };
+          const taskId = payload.id;
+          
+          // Find and update the task in the correct column
+          let taskFound = false;
+          for (const [columnName, tasks] of Object.entries(updatedColumns)) {
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+              console.log(`🔄 Updating task ${taskId} in column ${columnName} at index ${taskIndex}`);
+              // Update the task with new data
+              updatedColumns[columnName] = [...tasks];
+              const oldTask = updatedColumns[columnName][taskIndex];
+              updatedColumns[columnName][taskIndex] = {
+                ...oldTask,
+                ...payload,
+                assignee_id: payload?.assignee_id != null ? parseInt(payload.assignee_id, 10) : null,
+              };
+              console.log('📝 Task updated from:', oldTask);
+              console.log('📝 Task updated to:', updatedColumns[columnName][taskIndex]);
+              taskFound = true;
+              break;
+            }
+          }
+          if (!taskFound) {
+            console.warn(`⚠️ Task ${taskId} not found in any column`);
+          }
+          return updatedColumns;
+        });
+      }
+    };
+    const onTaskEditStart = (payload) => {
+      if (payload?.project_id === projectId) {
+        setEditingTasks(prev => {
+          const newMap = new Map(prev);
+          newMap.set(payload.taskId, { 
+            userId: payload.userId, 
+            userName: payload.userName || `User ${payload.userId}` 
+          });
+          return newMap;
+        });
+      }
+    };
+    const onTaskEditEnd = (payload) => {
+      if (payload?.project_id === projectId) {
+        setEditingTasks(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(payload.taskId);
+          return newMap;
+        });
+      }
+    };
 
     const unsubCreate = websocketService.subscribe('taskCreated', onTaskCreated);
     const unsubMove = websocketService.subscribe('taskMoved', onTaskMoved);
     const unsubDelete = websocketService.subscribe('taskDeleted', onTaskDeleted);
+    const unsubUpdate = websocketService.subscribe('taskUpdated', onTaskUpdated);
+    const unsubEditStart = websocketService.subscribe('taskEditStart', onTaskEditStart);
+    const unsubEditEnd = websocketService.subscribe('taskEditEnd', onTaskEditEnd);
 
     return () => {
       unsubCreate?.();
       unsubMove?.();
       unsubDelete?.();
+      unsubUpdate?.();
+      unsubEditStart?.();
+      unsubEditEnd?.();
     };
   }, [projectId]);
 
@@ -254,6 +321,7 @@ const Board = ({ projectId = 1, onDataChange }) => {
           availableColumns={Object.keys(columns)}
           currentColumn={title}
           projectId={projectId}
+          editingTasks={editingTasks}
         />
       ))}
     </div>

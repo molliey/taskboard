@@ -98,6 +98,13 @@ async def update_task(project_id: int, task_id: str, req: TaskUpdateRequest, Aut
     r.hset(f"project:{project_id}:board", col, json.dumps(col_tasks))
     # Broadcast WebSocket event
     updated_task = r.hgetall(f"task:{task_id}")
+    # Convert bytes to strings and ensure correct data types
+    updated_task = {k.decode() if isinstance(k, bytes) else k: 
+                   v.decode() if isinstance(v, bytes) else v 
+                   for k, v in updated_task.items()}
+    updated_task["project_id"] = int(project_id)  # Ensure project_id is int for frontend filtering
+    print(f"🔄 Broadcasting task_updated event for task {task_id} in project {project_id}")
+    print(f"📋 Updated task data: {updated_task}")
     await broadcast_event({"type": "task_updated", "payload": updated_task})
     return {
         "id": task_id,

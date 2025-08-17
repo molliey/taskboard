@@ -112,6 +112,12 @@ class WebSocketService {
       case 'member_removed':
         this.notifyListeners('member_removed', data.payload);
         break;
+      case 'task_edit_start':
+        this.notifyListeners('taskEditStart', data.payload);
+        break;
+      case 'task_edit_end':
+        this.notifyListeners('taskEditEnd', data.payload);
+        break;
       default:
         console.log('Unknown message type:', data.type);
     }
@@ -183,6 +189,15 @@ class WebSocketService {
   // Request board sync
   requestBoardSync(projectId) {
     this.sendMessage('request_board_sync', { projectId });
+  }
+
+  // Task edit state management
+  startTaskEdit(taskId, userId, projectId, userName = null) {
+    this.sendMessage('task_edit_start', { taskId, userId, projectId, userName });
+  }
+
+  endTaskEdit(taskId, userId, projectId) {
+    this.sendMessage('task_edit_end', { taskId, userId, projectId });
   }
 
   disconnect() {

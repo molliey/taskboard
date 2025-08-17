@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
+import websocketService from "../services/websocketService";
+import authService from "../services/authService";
 // Remove local mock users, display logic uses backend-returned name
 
-const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColumn }) => {
+const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColumn, editingTasks, projectId }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -55,6 +57,12 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
         };
         onUpdate?.(updates);
         setIsEditing(false);
+        
+        // Broadcast edit end
+        const currentUserId = authService.getCurrentUser()?.id;
+        if (projectId && currentUserId) {
+          websocketService.endTaskEdit(task.id, currentUserId, projectId);
+        }
       } else {
         // Revert if title is empty
         handleCancelEdit();
@@ -157,6 +165,19 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
   };
 
   const handleStartEdit = () => {
+    // Check if someone else is editing this task
+    const currentUserId = authService.getCurrentUser()?.id;
+    const otherEditor = editingTasks?.get(task.id);
+    
+    if (otherEditor && otherEditor.userId !== currentUserId) {
+      // Show conflict warning
+      if (window.confirm(`${otherEditor.userName} is currently editing this task. Do you want to edit anyway?`)) {
+        // User chose to edit anyway
+      } else {
+        return; // Cancel edit
+      }
+    }
+    
     setIsEditing(true);
     setShowMenu(false);
     // Initialize edit form with latest task data on edit, ensure assignee consistency
@@ -166,6 +187,12 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       due_date: task.due_date || '',
       assignee_id: parseInt(task.assignee_id, 10) || 0,
     });
+    
+    // Broadcast edit start
+    if (projectId && currentUserId) {
+      const userName = authService.getCurrentUser()?.name || `User ${currentUserId}`;
+      websocketService.startTaskEdit(task.id, currentUserId, projectId, userName);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -176,6 +203,12 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
       due_date: task.due_date || '',
       assignee_id: parseInt(task.assignee_id, 10) || 0,
     });
+    
+    // Broadcast edit end
+    const currentUserId = authService.getCurrentUser()?.id;
+    if (projectId && currentUserId) {
+      websocketService.endTaskEdit(task.id, currentUserId, projectId);
+    }
   };
 
   const handleSaveEdit = async (e) => {
@@ -207,14 +240,26 @@ const Card = ({ task, onDelete, onMove, onUpdate, availableColumns, currentColum
     });
   }, [task.title, task.description, task.due_date, task.assignee_id, isEditing]);
 
+  // Check if someone else is editing this task
+  const currentUserId = authService.getCurrentUser()?.id;
+  const otherEditor = editingTasks?.get(task.id);
+  const isBeingEditedByOther = otherEditor && otherEditor.userId !== currentUserId;
+
   return (
     <div 
-      className={`card ${isLoading ? 'card-loading' : ''} ${isDragging ? 'card-dragging' : ''}`}
+      className={`card ${isLoading ? 'card-loading' : ''} ${isDragging ? 'card-dragging' : ''} ${isBeingEditedByOther ? 'card-editing-conflict' : ''}`}
       draggable={!isLoading && !showMenu}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       ref={cardRef}
     >
+      {/* Editing conflict indicator */}
+      {isBeingEditedByOther && (
+        <div className="editing-indicator">
+          <span className="editing-icon">✏️</span>
+          <span className="editing-text">{otherEditor.userName} is editing</span>
+        </div>
+      )}
       <div className="card-content">
         {!isEditing && (
           <div 
