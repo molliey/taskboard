@@ -1,6 +1,6 @@
-# 📋 TaskBoard - Real-time Collaborative Task Management
+# 📋 TASKBOARD - Real-time Collaborative Task Management
 
-A collaborative task board application enabling project, team, and task management with real-time updates and summary functionality.
+A collaborative task board application enabling project, team, and task management with real-time updates.
 
 <img width="1911" height="1072" alt="Image" src="https://github.com/user-attachments/assets/03e2a1bb-0e4d-4dc5-87dd-595b13947022" />
 
