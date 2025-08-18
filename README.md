@@ -94,7 +94,7 @@ taskboard/
 
 ### WebSocket
 - **URL**: `ws://localhost:8000/ws?user_id={userId}`
-- **Events**: `task_created`, `task_updated`, `task_moved`, `task_deleted``member_added`, `member_removed`, `project_updated`
+- **Events**: `task_created`, `task_updated`, `task_moved`, `task_deleted`, `member_added`, `member_removed`, `project_updated`
 
 ## 🧪 Testing
 
