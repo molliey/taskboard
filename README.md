@@ -14,7 +14,7 @@ A collaborative task board application enabling project, team, and task manageme
 
 ## 🛠️ Tech Stack
 
-- **Backend**: FastAPI, Redis, WebSocket, JWT
+- **Backend**: FastAPI, Redis, RESTful API, WebSocket, JWT
 - **Frontend**: React, Vite, CSS3
 
 ## 🏗️ Architecture
